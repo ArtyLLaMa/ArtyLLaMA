@@ -12,7 +12,7 @@
     <div class="container mx-auto p-4 h-screen flex flex-col">
         <header class="flex justify-between items-center mb-4">
             <div class="flex items-center">
-                <!-- <img src="/static/image/logo.png" alt="ArtyChat Logo" class="h-8 w-8 mr-2"> -->
+                <p>🦙</p>
                 <select x-model="selectedModel" @change="changeModel()" class="bg-gray-800 text-white p-2 rounded">
                     <template x-for="model in availableModels" :key="model">
                         <option :value="model" x-text="model"></option>
@@ -32,8 +32,8 @@
         </header>
 
         <div x-show="showSystemMessage" class="mb-4">
-            <textarea x-model="systemMessage" 
-                      class="w-full p-2 bg-gray-800 text-white rounded-lg" 
+            <textarea x-model="systemMessage"
+                      class="w-full p-2 bg-gray-800 text-white rounded-lg"
                       placeholder="Enter system message to initialize AI..."></textarea>
         </div>
 
@@ -48,8 +48,8 @@
                     </template>
                 </div>
                 <div class="flex items-center space-x-2 bg-gray-800 p-2 rounded-lg">
-                    <textarea x-model="userInput" @keydown.enter.prevent="sendMessage()" 
-                              class="flex-grow p-2 bg-gray-700 rounded-lg text-white" 
+                    <textarea x-model="userInput" @keydown.enter.prevent="sendMessage()"
+                              class="flex-grow p-2 bg-gray-700 rounded-lg text-white"
                               placeholder="Type your message..."></textarea>
                     <button @click="sendMessage()" class="p-2 bg-blue-600 text-white rounded-lg">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,7 +58,7 @@
                     </button>
                 </div>
             </section>
-            
+
             <section id="artifact-panel" class="absolute top-0 right-0 h-full w-1/3 bg-gray-800 rounded-lg p-4 transform transition-transform duration-300 ease-in-out"
                  :class="{'translate-x-0': showArtifact, 'translate-x-full': !showArtifact}">
             <div class="flex justify-between items-center mb-4">
@@ -92,7 +92,7 @@
             <div id="artifact-display" class="overflow-y-auto h-full" x-show="!showHtmlPreview">
                 <!-- Artifact content will be inserted here -->
             </div>
-            <div id="html-preview" class="overflow-y-auto h-full bg-white text-black p-4 rounded" 
+            <div id="html-preview" class="overflow-y-auto h-full bg-white text-black p-4 rounded"
                  x-show="showHtmlPreview" style="min-height: 200px;">
                 <!-- HTML preview will be rendered here -->
             </div>
