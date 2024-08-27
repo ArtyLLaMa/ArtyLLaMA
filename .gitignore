@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual Environment
+venv/
+env/
+*.env
+
+# IDE files
+.vscode/
+.idea/
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# LLaMA models (these are usually large and should be downloaded separately)
+models/*.gguf
+
+# Logs
+*.log
+
+# Temporary files
+*.tmp
