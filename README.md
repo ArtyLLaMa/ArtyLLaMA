@@ -1,8 +1,5 @@
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/ee7fde62-d935-4558-9474-96298100c4d8" alt="ArtyLLaMa Icon" width="128" height="128">
-</p>
 
-<h1 align="center">ArtyLLaMA</h1>
+<h1 align="center">ArtyLLaMA 🦙</h1>
 
 <p align="center">
   An innovative chat interface leveraging the power of LLaMA.cpp with an "Artifacts-like" feature for dynamic content generation and display.
