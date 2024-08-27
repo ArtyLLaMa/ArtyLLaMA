@@ -47,18 +47,18 @@ initialize_models()
 
 def format_prompt(system_message, user_message, chat_history=[]):
     formatted_prompt = ""
-    
+
     if system_message:
         formatted_prompt += f"<|start_header_id|>system<|end_header_id|>{system_message}<|eot_id|>"
-    
+
     for message in chat_history:
         role = message['role']
         content = message['content']
         formatted_prompt += f"<|start_header_id|>{role}<|end_header_id|>{content}<|eot_id|>"
-    
+
     formatted_prompt += f"<|start_header_id|>user<|end_header_id|>{user_message}<|eot_id|>"
     formatted_prompt += "<|start_header_id|>assistant<|end_header_id|>"
-    
+
     return formatted_prompt
 
 @app.route('/')
@@ -76,15 +76,24 @@ def generate():
     selected_model = data.get('model')
     system_message = data.get('system_message', '')
     chat_history = data.get('chat_history', [])
-    
+
     if selected_model not in models:
         return jsonify({"error": "Selected model not available"}), 400
-    
+
     model = models[selected_model]
-    
+
     formatted_prompt = format_prompt(system_message, prompt, chat_history)
 
     return Response(stream_with_context(generate_stream(model, formatted_prompt)), content_type='application/json')
+
+def extract_artifact(response):
+    # Extract content between triple backticks
+    code_blocks = re.findall(r'```(?:(\w+))?\n([\s\S]+?)\n```', response)
+    if code_blocks:
+        language, content = code_blocks[0]
+        filename = f"artifact.{language}" if language else "artifact.txt"
+        return {"filename": filename, "content": content}
+    return None
 
 def generate_stream(model, prompt):
     try:
@@ -98,20 +107,13 @@ def generate_stream(model, prompt):
         # Check if the response contains code or other artifact-worthy content
         artifact_content = extract_artifact(full_response)
         if artifact_content:
-            yield json.dumps({'type': 'artifact', 'content': artifact_content}, ensure_ascii=False) + '\n'
+            yield json.dumps({'type': 'artifact', 'data': artifact_content}, ensure_ascii=False) + '\n'
 
         logger.info("Generation completed successfully")
     except Exception as e:
         logger.error(f"Error during token generation: {str(e)}")
         logger.error(traceback.format_exc())
         yield json.dumps({'error': str(e)}, ensure_ascii=False) + '\n'
-
-def extract_artifact(response):
-    # Extract content between triple backticks
-    code_blocks = re.findall(r'```(?:\w+)?\n([\s\S]+?)\n```', response)
-    if code_blocks:
-        return code_blocks[0]
-    return None
 
 @app.route('/model_status', methods=['GET'])
 def model_status():

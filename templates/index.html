@@ -41,9 +41,18 @@
             <section class="w-full flex flex-col">
                 <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-2 p-4 bg-gray-800 rounded-lg">
                     <template x-for="message in chatHistory" :key="message.id">
-                        <div :class="{'bg-gray-700': message.role === 'user', 'bg-gray-600': message.role === 'assistant'}"
-                             class="p-3 rounded-lg">
-                            <span x-text="message.content"></span>
+                        <div :class="{'bg-gray-700': message.role === 'user', 'bg-gray-600': message.role === 'assistant', 'bg-blue-600': message.role === 'artifact'}" class="p-3 rounded-lg">
+                            <template x-if="message.role !== 'artifact'">
+                                <span x-text="message.content"></span>
+                            </template>
+                            <template x-if="message.role === 'artifact'">
+                                <button @click="openArtifact(message.artifactIndex)" class="text-white hover:underline">
+                                    <span x-text="message.content"></span>
+                                    <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+                                    </svg>
+                                </button>
+                            </template>
                         </div>
                     </template>
                 </div>

@@ -1,6 +1,6 @@
 /* Base styles */
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     background-color: #1a202c;
     color: #e2e8f0;
 }
@@ -76,8 +76,12 @@ textarea {
 
 /* Loading spinner */
 @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .animate-spin {
@@ -119,4 +123,17 @@ textarea {
     content: "HTML preview will appear here";
     color: #718096;
     font-style: italic;
+}
+
+/* Artifact button styles */
+.bg-blue-600 {
+    background-color: #2563eb;
+}
+
+.bg-blue-600:hover {
+    background-color: #1d4ed8;
+}
+
+.hover\:underline:hover {
+    text-decoration: underline;
 }
