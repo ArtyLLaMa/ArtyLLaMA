@@ -1,10 +1,10 @@
 
-![image](https://github.com/user-attachments/assets/1a6f595a-5aa7-4b05-84d8-c5d2f74948dd)
-
-
 # ArtyLLaMA
 
 ArtyLLaMA is an innovative chat interface that leverages the power of LLaMA.cpp and introduces an "Artifacts-like" feature for dynamic content generation and display.
+
+![image](https://github.com/user-attachments/assets/a94003f7-9af8-4591-bffe-97c4c59d2193)
+Demo of ArtyLLaMa running the model LLaMa3.1 Instruct in Q8 generating a calculator from a prompt
 
 ## Features
 
