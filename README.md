@@ -1,3 +1,4 @@
+<img src="https://github.com/user-attachments/assets/ee7fde62-d935-4558-9474-96298100c4d8" alt="ArtyLLaMa Icon" width="128" height="128">
 
 # ArtyLLaMA
 
