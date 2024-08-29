@@ -15,8 +15,9 @@
 <p align="center">
   <a href="#demo">View Demo</a> ·
   <a href="#features">Features</a> ·
-  <a href="#installation">Installation</a> ·
-  <a href="#usage">Usage</a> ·
+  <a href="#technical-stack">Technical Stack</a> ·
+  <a href="#key-components">Key Components</a> ·
+  <a href="#getting-started">Getting Started</a> ·
   <a href="#roadmap">Roadmap</a> ·
   <a href="#contributing">Contributing</a> ·
   <a href="#license">License</a>
@@ -67,7 +68,7 @@ ArtyLLaMA is an innovative chat interface for Open Source Large Language Models,
 
 - Python 3.11+
 - Git
-- Compatible LLaMA models in .GGUF format ([Available on Hugging Face 🤗](https://huggingface.co/kroonen))
+- Compatible LLaMA models in .GGUF format ([Available on Hugging Face 🤗](https://huggingface.co/artyllama))
 
 ### Installation
 
