@@ -1,44 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" x-data="chatApp()">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ArtyLLaMA 🦙 - Craft Conversations, Create Content</title>
-    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="/static/css/style.css">
-    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <title>ArtyLLaMA Chat</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="static/css/style.css">
 </head>
-<body class="bg-gray-900 text-gray-100">
-    <div class="container mx-auto p-4 h-screen flex flex-col">
-        <header class="flex justify-between items-center mb-4">
+<body class="bg-gray-900 text-white">
+    <div x-data="chatApp()" x-init="init()" class="container mx-auto p-4 h-screen flex flex-col">
+        <div class="flex justify-between items-center mb-4">
             <div class="flex items-center">
-                <p>🦙</p>
-                <select x-model="selectedModel" @change="changeModel()" class="bg-gray-800 text-white p-2 rounded">
+                🦙
+            </div>
+            <div class="text-center">
+                <a href="https://github.com/kroonen/ArtyLLaMA" class="text-white hover:text-blue-300 transition-colors duration-200" target="_blank">
+                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd"></path>
+                    </svg>
+                </a>
+            </div>
+            <div>
+                <select x-model="selectedModel" class="bg-gray-800 text-white rounded p-2">
                     <template x-for="model in availableModels" :key="model">
                         <option :value="model" x-text="model"></option>
                     </template>
                 </select>
             </div>
-            <div class="text-center">
-                <a href="https://github.com/kroonen/ArtyLLaMA" target="_blank" class="text-white hover:text-blue-300 transition-colors duration-200">
-                    <svg class="h-8 w-8" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" clip-rule="evenodd" />
-                    </svg>
-                </a>
-            </div>
-            <button @click="showSystemMessage = !showSystemMessage" class="bg-blue-600 text-white p-2 rounded-lg">
-                System Message
-            </button>
-        </header>
-
-        <div x-show="showSystemMessage" class="mb-4">
-            <textarea x-model="systemMessage"
-                      class="w-full p-2 bg-gray-800 text-white rounded-lg"
-                      placeholder="Enter system message to initialize AI..."></textarea>
         </div>
 
-        <main class="flex-grow flex space-x-4 overflow-hidden relative">
-            <section class="flex-1 flex flex-col min-w-0">
+        <div x-show="showSystemMessage" class="mb-4">
+            <textarea x-model="systemMessage" class="w-full bg-gray-800 text-white rounded p-2" placeholder="Enter system message..."></textarea>
+        </div>
+
+        <div class="flex-grow flex space-x-4 overflow-hidden relative" role="main">
+            <div class="section flex-1 flex flex-col min-w-0">
                 <div id="chat-history" class="flex-grow overflow-y-auto mb-4 space-y-2 p-4 bg-gray-800 rounded-lg">
                     <template x-for="message in chatHistory" :key="message.id">
                         <div :class="{'bg-gray-700': message.role === 'user', 'bg-gray-600': message.role === 'assistant', 'bg-blue-600': message.role === 'artifact'}" class="p-3 rounded-lg">
@@ -46,78 +43,66 @@
                                 <span x-text="message.content"></span>
                             </template>
                             <template x-if="message.role === 'artifact'">
-                                <button @click="openArtifact(message.artifactIndex)" class="text-white hover:underline">
-                                    <span x-text="message.content"></span>
+                                <span x-text="message.content" @click="openArtifact(message.artifactIndex)" class="cursor-pointer">
                                     <svg class="inline-block w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
                                     </svg>
-                                </button>
+                                </span>
                             </template>
                         </div>
                     </template>
                 </div>
                 <div class="flex items-center space-x-2 bg-gray-800 p-2 rounded-lg">
-                    <textarea x-model="userInput" @keydown.enter.prevent="sendMessage()"
-                              class="flex-grow p-2 bg-gray-700 rounded-lg text-white"
-                              placeholder="Type your message..."></textarea>
-                    <button @click="sendMessage()" class="p-2 bg-blue-600 text-white rounded-lg">
+                    <textarea x-model="userInput" @keydown.enter.prevent="sendMessage()" class="flex-grow bg-gray-700 text-white rounded p-2 resize-none" rows="1" placeholder="Type your message..."></textarea>
+                    <button @click="sendMessage()" class="bg-blue-500 text-white rounded p-2">
                         <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path>
                         </svg>
                     </button>
                 </div>
-            </section>
+            </div>
 
-            <section id="artifact-panel" class="flex-1 bg-gray-800 rounded-lg p-4 transform transition-all duration-300 ease-in-out" 
-                     :class="{'translate-x-0 w-1/2': showArtifact, 'translate-x-full w-0': !showArtifact}">
+            <div id="artifact-panel" class="section flex-1 bg-gray-800 rounded-lg p-4 transform transition-all duration-300 ease-in-out" :class="{'translate-x-0 w-1/2': showArtifact, 'translate-x-full w-0': !showArtifact}">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="text-xl font-bold">Artifact Display</h2>
                     <div class="flex space-x-2">
-                        <button @click="toggleArtifactExpansion()" class="p-1 bg-gray-700 rounded-full">
+                        <button @click="toggleArtifactExpansion()" class="text-white">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
                             </svg>
                         </button>
-                        <button @click="previousArtifact()" class="p-1 bg-gray-700 rounded-full" :disabled="currentArtifactIndex <= 0">
+                        <button @click="previousArtifact()" class="text-white">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
                             </svg>
                         </button>
-                        <button @click="nextArtifact()" class="p-1 bg-gray-700 rounded-full" :disabled="currentArtifactIndex >= artifacts.length - 1">
+                        <button @click="nextArtifact()" class="text-white">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
                             </svg>
                         </button>
-                        <button @click="minimizeArtifact()" class="p-1 bg-gray-700 rounded-full">
+                        <button @click="minimizeArtifact()" class="text-white">
                             <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
                         </button>
                     </div>
                 </div>
                 <div class="mb-4 flex space-x-2">
-                    <button @click="copyArtifact()" class="p-2 bg-blue-600 text-white rounded-lg">
-                        Copy Code
-                    </button>
-                    <button @click="toggleHtmlPreview()" x-show="isHtmlContent" class="p-2 bg-green-600 text-white rounded-lg">
+                    <button @click="copyArtifact()" class="bg-blue-500 text-white rounded px-4 py-2">Copy Code</button>
+                    <button x-show="isHtmlContent" @click="toggleHtmlPreview()" class="bg-green-500 text-white rounded px-4 py-2">
                         Toggle HTML Preview
                     </button>
                 </div>
-                <div id="artifact-display" class="overflow-y-auto h-full" x-show="!showHtmlPreview">
-                    <!-- Artifact content will be inserted here -->
-                </div>
-                <div id="html-preview" class="overflow-y-auto h-full bg-white text-black p-4 rounded"
-                     x-show="showHtmlPreview" style="min-height: 200px;">
-                    <!-- HTML preview will be rendered here -->
-                </div>
-            </section>
-        </main>
+                <div id="artifact-display" class="overflow-y-auto h-full" x-show="!showHtmlPreview"></div>
+                <div id="html-preview" class="overflow-y-auto h-full bg-white text-black p-4 rounded" x-show="showHtmlPreview" style="min-height: 200px;"></div>
+            </div>
+        </div>
 
-        <div x-show="isLoading" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center" x-show="isLoading">
             <div class="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
         </div>
     </div>
-
-    <script src="/static/js/main.js"></script>
+    <script src="static/js/main.js"></script>
 </body>
 </html>

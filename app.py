@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify, render_template, Response, stream_with_context
-from llama_cpp import Llama
+#from llama_cpp import Llama
 import json
 import os
 import logging
@@ -11,39 +11,41 @@ app = Flask(__name__)
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-os.environ['LLAMA_METAL'] = '1'
-os.environ['LLAMA_ACCELERATE'] = '1'
+# os.environ['DLLAMA_CUBLAS'] = '1'
+# os.environ['LLAMA_ACCELERATE'] = '1'
 
 models = {}
 
-def initialize_models():
-    global models
-    models_dir = 'models'
-    for model_file in os.listdir(models_dir):
-        if model_file.endswith('.gguf'):
-            model_path = os.path.join(models_dir, model_file)
-            try:
-                models[model_file] = Llama(
-                    model_path=model_path,
-                    n_ctx=8192,
-                    n_threads=32,
-                    n_batch=512,
-                    n_gpu_layers=-1,
-                    use_mlock=True,
-                    use_mmap=True,
-                    low_vram=False,
-                    flash_attn=True,
-                    temperature=0.8,
-                    top_k=40,
-                    top_p=0.9,
-                    repetition_penalty=1.3,
-                    stop=["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>"]
-                )
-                logger.info(f"Loaded model: {model_file}")
-            except Exception as e:
-                logger.error(f"Error loading model {model_file}: {str(e)}")
+# def initialize_models():
+#     global models
+#     models_dir = 'models'
+#     for model_file in os.listdir(models_dir):
+#         if model_file.endswith('.gguf'):
+#             model_path = os.path.join(models_dir, model_file)
+#             try:
+#                 models[model_file] = Llama(
+#                 model_path=model_path,
+#                 n_ctx=8192,
+#                 n_threads=32,
+#                 n_batch=512,
+#                 n_gpu_layers=-1,  # This tells llama.cpp to use all GPU layers
+#                 use_mlock=True,
+#                 use_mmap=True,
+#                 low_vram=False,
+#                 offload_kqv=True,  # Offload key/query/value matrices to GPU memory
+#                 use_cuda=True,  # Enable CUDA support
+#                 temperature=0.8,
+#                 top_k=40,
+#                 top_p=0.9,
+#                 repetition_penalty=1.3,
+#                 stop=["<|start_header_id|>", "<|end_header_id|>", "<|eot_id|>"]
+#             )
+                
+#                 logger.info(f"Loaded model: {model_file}")
+#             except Exception as e:
+#                 logger.error(f"Error loading model {model_file}: {str(e)}")
 
-initialize_models()
+# initialize_models()
 
 def format_prompt(system_message, user_message, chat_history=[]):
     formatted_prompt = ""
