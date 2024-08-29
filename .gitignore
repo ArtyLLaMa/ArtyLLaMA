@@ -11,7 +11,7 @@ env/
 # IDE files
 .vscode/
 .idea/
-.zed
+.zed/
 
 # OS generated files
 .DS_Store

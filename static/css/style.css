@@ -51,11 +51,18 @@ textarea {
 
 /* Artifact styles */
 #artifact-panel {
-    transition: transform 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+    max-width: 50%;
+    min-width: 300px;
+    position: relative;
+}
+
+#artifact-panel.expanded {
+    max-width: 80%;
 }
 
 #artifact-display {
-    height: calc(100% - 4rem);
+    height: calc(100% - 8rem);
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: #4a5568 #2d3748;
@@ -74,6 +81,21 @@ textarea {
     border-radius: 4px;
 }
 
+/* Resizable handle */
+.resizable-handle {
+    position: absolute;
+    left: -5px;
+    top: 0;
+    bottom: 0;
+    width: 10px;
+    cursor: ew-resize;
+    background-color: rgba(74, 85, 104, 0.3);
+}
+
+.resizable-handle:hover {
+    background-color: rgba(74, 85, 104, 0.5);
+}
+
 /* Loading spinner */
 @keyframes spin {
     0% {
@@ -86,13 +108,6 @@ textarea {
 
 .animate-spin {
     animation: spin 1s linear infinite;
-}
-
-/* Responsive styles */
-@media (max-width: 768px) {
-    #artifact-panel {
-        width: 100% !important;
-    }
 }
 
 /* HTML Preview styles */
@@ -125,15 +140,23 @@ textarea {
     font-style: italic;
 }
 
-/* Artifact button styles */
-.bg-blue-600 {
-    background-color: #2563eb;
-}
+/* Responsive styles */
+@media (max-width: 768px) {
+    #artifact-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        width: 100% !important;
+        max-width: none;
+        z-index: 50;
+    }
 
-.bg-blue-600:hover {
-    background-color: #1d4ed8;
-}
+    #artifact-panel.expanded {
+        max-width: none;
+    }
 
-.hover\:underline:hover {
-    text-decoration: underline;
+    .resizable-handle {
+        display: none;
+    }
 }

@@ -25,15 +25,15 @@ def initialize_models():
             try:
                 models[model_file] = Llama(
                     model_path=model_path,
-                    n_ctx=2048,
-                    n_threads=16,
+                    n_ctx=8192,
+                    n_threads=32,
                     n_batch=512,
                     n_gpu_layers=-1,
                     use_mlock=True,
                     use_mmap=True,
                     low_vram=False,
                     flash_attn=True,
-                    temperature=0.75,
+                    temperature=0.8,
                     top_k=40,
                     top_p=0.9,
                     repetition_penalty=1.3,
@@ -99,7 +99,7 @@ def generate_stream(model, prompt):
     try:
         logger.info(f"Generating with formatted prompt: {prompt[:100]}...")
         full_response = ""
-        for token in model(prompt, max_tokens=1024, temperature=0.7, stream=True):
+        for token in model(prompt, max_tokens=8192, temperature=0.8, stream=True):
             chunk = token['choices'][0]['text']
             full_response += chunk
             yield json.dumps({'token': chunk, 'full': full_response}, ensure_ascii=False) + '\n'
