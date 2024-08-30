@@ -8,6 +8,5 @@ MarkupSafe==2.1.5
 numpy==2.1.0
 typing_extensions==4.12.2
 Werkzeug==3.0.4
-chromadb==0.4.22
 python-dotenv==1.0.1
-requests==2.32.2
+requests==2.31.0

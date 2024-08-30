@@ -6,9 +6,11 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+.zed/
 
-# Chroma DB
+# DB
 chroma_db/
+*.db
 
 # Artifacts
 artifacts/
