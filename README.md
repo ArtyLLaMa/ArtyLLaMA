@@ -23,7 +23,7 @@
   <a href="#license">License</a>
 </p>
 
-ArtyLLaMA is an innovative chat interface for Open Source Large Language Models, now leveraging the power of Ollama. It features dynamic content generation and display through an "Artifacts-like" system, making AI-assisted creativity more accessible and interactive.
+ArtyLLaMA is an innovative chat interface for Open Source Large Language Models, leveraging the power of Ollama. It features dynamic content generation and display through an "Artifacts-like" system, making AI-assisted creativity more accessible and interactive.
 
 ## 🎥 Demo
 
@@ -32,18 +32,20 @@ ArtyLLaMA is an innovative chat interface for Open Source Large Language Models,
 </p>
 
 <p align="center">
-  <em>ArtyLLaMA in action: Using Ollama to run various models, generating an entire website in one shot!</em>
+  <em>ArtyLLaMA in action: Using Ollama to run various models, generating and displaying content dynamically!</em>
 </p>
 
 ## ✨ Features
 
 - 🦙 **Ollama Integration**: Seamless support for multiple language models via Ollama
 - 🎨 **Dynamic Artifact Generation**: Create and display content artifacts during chat interactions
-- 🖥️ **Real-time HTML Preview**: Instantly visualize HTML artifacts
+- 🖥️ **Real-time HTML Preview**: Instantly visualize HTML artifacts with toggle functionality
 - 🔄 **Multi-Model Support**: Choose from multiple language models available through Ollama
 - 📱 **Responsive Design**: Mobile-friendly interface built with Tailwind CSS
 - 🌙 **Dark Mode**: Easy on the eyes with a default dark theme
 - 🚀 **Local Inference**: Run models locally for privacy and customization
+- 🖼️ **Expandable Artifact Panel**: View artifacts in a larger, full-screen mode
+- 🔗 **Remote Content Support**: Display remote content within the artifact panel
 
 ## 🛠️ Technical Stack
 
@@ -54,7 +56,7 @@ ArtyLLaMA is an innovative chat interface for Open Source Large Language Models,
 ## 🧩 Key Components
 
 1. 💬 **Interactive Chat Interface**: Real-time messaging with AI model responses
-2. 🖼️ **Artifact Panel**: Display generated content with copy and preview functionalities
+2. 🖼️ **Artifact Panel**: Display generated content with copy, preview, and expand functionalities
 3. 🔽 **Model Selector**: Easy switching between different Ollama models
 4. 📝 **Customizable System Messages**: Set the AI's context and behavior
 
@@ -97,7 +99,9 @@ ArtyLLaMA is an innovative chat interface for Open Source Large Language Models,
 ## 🗺️ Roadmap
 
 - [x] Display generated artifacts in the chatbox as clickable objects
-- [x] Integrate Ollama for multi-model support with models selector
+- [x] Integrate Ollama for multi-model support with model selector
+- [x] Implement expandable artifact panel for better viewing
+- [x] Add support for remote content in artifacts
 - [ ] Support additional artifact types (images, markdown)
 - [ ] Integrate more providers (OpenAI, Groq, Anthropic,...)
 - [ ] Enhance error handling and model performance / display stats
