@@ -7,9 +7,39 @@ async function fetchAvailableModels() {
       const data = await response.json();
       return data.models.map(model => model.name);
     } catch (error) {
-      console.error('Error fetching models:', error);
+      console.error('Error fetching models:', displayCurrentArtifact);
       return [];
     }
+  }
+  
+  function renderHTML(htmlContent) {
+    // Process placeholders
+    htmlContent = htmlContent.replace(/src="([^"]+)"/g, (match, url) => {
+      if (url.startsWith('http')) {
+        return `src="/api/placeholder/400/300" alt="Placeholder for ${url}"`;
+      }
+      return match;
+    });
+  
+    // Create a sandboxed iframe
+    const iframe = document.createElement('iframe');
+    iframe.sandbox = 'allow-scripts';
+    iframe.style.width = '100%';
+    iframe.style.height = '500px';
+    iframe.style.border = 'none';
+  
+    // Set the content of the iframe
+    iframe.srcdoc = htmlContent;
+  
+    // Replace the content of the preview area with the iframe
+    const previewArea = document.getElementById('html-preview');
+    previewArea.innerHTML = '';
+    previewArea.appendChild(iframe);
+  
+    // Adjust iframe height after content loads
+    iframe.onload = () => {
+      iframe.style.height = iframe.contentWindow.document.body.scrollHeight + 'px';
+    };
   }
   
   function chatApp() {
@@ -22,7 +52,6 @@ async function fetchAvailableModels() {
       showArtifact: false,
       artifacts: [],
       currentArtifactIndex: -1,
-      isHtmlContent: false,
       showHtmlPreview: false,
       systemMessage: '',
       showSystemMessage: false,
@@ -38,13 +67,13 @@ async function fetchAvailableModels() {
   
       async sendMessage() {
         if (this.userInput.trim() === '') return;
-      
+        
         const userMessage = this.userInput;
         this.chatHistory.push({ role: 'user', content: userMessage, id: Date.now() });
         this.userInput = '';
         this.isLoading = true;
         this.showArtifact = false;
-      
+        
         try {
           const response = await fetch('http://localhost:11434/api/chat', {
             method: 'POST',
@@ -58,24 +87,24 @@ async function fetchAvailableModels() {
               stream: true
             })
           });
-      
+        
           if (!response.ok) {
             throw new Error('Failed to generate response');
           }
-      
+        
           const reader = response.body.getReader();
           const decoder = new TextDecoder();
           let aiResponse = '';
-      
+        
           this.chatHistory.push({ role: 'assistant', content: '', id: Date.now() + 1 });
-      
+        
           while (true) {
             const { done, value } = await reader.read();
             if (done) break;
-      
+        
             const chunk = decoder.decode(value);
             const lines = chunk.split('\n');
-      
+        
             for (const line of lines) {
               if (line.trim() === '') continue;
               try {
@@ -91,7 +120,7 @@ async function fetchAvailableModels() {
                 console.error('Error parsing JSON:', parseError);
               }
             }
-      
+        
             // Force a re-render of the chat history
             this.chatHistory = [...this.chatHistory];
           }
@@ -109,7 +138,7 @@ async function fetchAvailableModels() {
         } finally {
           this.isLoading = false;
         }
-      
+        
         this.$nextTick(() => {
           this.scrollChatToBottom();
         });
@@ -128,40 +157,49 @@ async function fetchAvailableModels() {
         return artifacts;
       },
   
+      closeArtifact() {
+        this.showArtifact = false;
+      },
+  
       addArtifact(data) {
         const artifact = {
           filename: `artifact_${Date.now()}.${data.language}`,
           content: data.content,
-          isHtml: this.detectHtmlContent(data.content),
-          showPreview: false
+          isHtml: this.detectHtmlContent(data.content)
         };
         this.artifacts.push(artifact);
         this.currentArtifactIndex = this.artifacts.length - 1;
+        
+        this.chatHistory.push({
+          role: 'artifact',
+          content: `Artifact: ${artifact.filename}`,
+          id: Date.now(),
+          artifactIndex: this.currentArtifactIndex
+        });
+      
+        this.showArtifact = true;
+        this.showHtmlPreview = artifact.isHtml;
+        this.displayCurrentArtifact();
+      },
+  
+      openArtifact(index) {
+        this.currentArtifactIndex = index;
         this.showArtifact = true;
         this.displayCurrentArtifact();
       },
   
       displayCurrentArtifact() {
-        if (this.currentArtifactIndex < 0) return;
-        const artifact = this.artifacts[this.currentArtifactIndex];
-        const artifactContainer = document.getElementById('artifact-display');
-        artifactContainer.innerHTML = `<pre><code>${this.escapeHtml(artifact.content)}</code></pre>`;
-        this.isHtmlContent = this.detectHtmlContent(artifact.content);
-        this.showHtmlPreview = false;
-      },
-  
-      nextArtifact() {
-        if (this.currentArtifactIndex < this.artifacts.length - 1) {
-          this.currentArtifactIndex++;
-          this.displayCurrentArtifact();
-        }
-      },
-  
-      previousArtifact() {
-        if (this.currentArtifactIndex > 0) {
-          this.currentArtifactIndex--;
-          this.displayCurrentArtifact();
-        }
+          if (this.currentArtifactIndex < 0) return;
+          const artifact = this.artifacts[this.currentArtifactIndex];
+          
+          if (this.detectHtmlContent(artifact.content)) {
+              renderHTML(artifact.content);
+              this.showHtmlPreview = true;
+          } else {
+              const artifactContainer = document.getElementById('artifact-display');
+              artifactContainer.innerHTML = `<pre><code>${this.escapeHtml(artifact.content)}</code></pre>`;
+              this.showHtmlPreview = false;
+          }
       },
   
       detectHtmlContent(content) {
@@ -169,19 +207,8 @@ async function fetchAvailableModels() {
       },
   
       toggleHtmlPreview() {
-        if (this.currentArtifactIndex < 0) return;
-        const artifact = this.artifacts[this.currentArtifactIndex];
         this.showHtmlPreview = !this.showHtmlPreview;
-    
-        if (this.showHtmlPreview) {
-            const previewContainer = document.getElementById('html-preview');
-            previewContainer.innerHTML = artifact.content;
-        }
-      },
-  
-      minimizeArtifact() {
-        this.showArtifact = false;
-        this.isArtifactExpanded = false;
+        this.displayCurrentArtifact();
       },
   
       copyArtifact() {
@@ -238,12 +265,6 @@ async function fetchAvailableModels() {
         document.addEventListener('mouseup', () => {
           isResizing = false;
         });
-      },
-  
-      openArtifact(index) {
-        this.currentArtifactIndex = index;
-        this.showArtifact = true;
-        this.displayCurrentArtifact();
       }
     };
   }
