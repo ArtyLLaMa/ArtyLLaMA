@@ -28,7 +28,7 @@ ArtyLLaMA is an innovative chat interface for Open Source Large Language Models,
 ## 🎥 Demo
 
 <p align="center">
-  <img src="https://github.com/user-attachments/assets/fee44f6a-c69e-4b03-a326-e9e92d7e7bee" alt="ArtyLLaMA Interface" width="100%">
+  <img src="https://github.com/user-attachments/assets/2cc77193-ee20-4bf1-be81-c64ec075c0f9" alt="ArtyLLaMA Interface" width="100%">
 </p>
 
 <p align="center">
