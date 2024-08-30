@@ -11,34 +11,24 @@ async function fetchAvailableModels() {
   }
 }
 
-function renderHTML(htmlContent) {
-  // Process placeholders
-  htmlContent = htmlContent.replace(/src="([^"]+)"/g, (match, url) => {
-    if (url.startsWith("http")) {
-      return `src="/api/placeholder/400/300" alt="Placeholder for ${url}"`;
-    }
-    return match;
-  });
-
+function renderHTML(htmlContent, container) {
   // Create a sandboxed iframe
   const iframe = document.createElement("iframe");
-  iframe.sandbox = "allow-scripts";
+  iframe.sandbox = "allow-scripts allow-same-origin";
   iframe.style.width = "100%";
-  iframe.style.height = "500px";
+  iframe.style.height = "100%";
   iframe.style.border = "none";
 
   // Set the content of the iframe
   iframe.srcdoc = htmlContent;
 
   // Replace the content of the preview area with the iframe
-  const previewArea = document.getElementById("html-preview");
-  previewArea.innerHTML = "";
-  previewArea.appendChild(iframe);
+  container.innerHTML = "";
+  container.appendChild(iframe);
 
   // Adjust iframe height after content loads
   iframe.onload = () => {
-    iframe.style.height =
-      iframe.contentWindow.document.body.scrollHeight + "px";
+    iframe.style.height = "100%";
   };
 }
 
@@ -150,7 +140,7 @@ function chatApp() {
               if (data.token) {
                 aiResponse += data.token;
                 this.updateLastAssistantMessage(aiResponse, responseId);
-                this.scrollChatToBottom(); // Auto-scroll after each token
+                this.scrollChatToBottom();
               } else if (data.type === "artifact") {
                 this.handleNewArtifact(data.data, data.id);
               }
@@ -198,8 +188,8 @@ function chatApp() {
       // Add artifact reference to chat history
       this.chatHistory.push({
         role: "artifact",
-        content: `Artifact created: ${artifactData.filename}`,
-        artifactId: artifactId, // Store the artifact ID instead of index
+        content: `Artifact created: ${artifactData.filename || 'HTML content'}`,
+        artifactId: artifactId,
         id: Date.now(),
       });
       
@@ -221,11 +211,23 @@ function chatApp() {
       if (this.currentArtifactIndex < 0) return;
       const artifact = this.artifacts[this.currentArtifactIndex];
 
-      if (artifact.filename.endsWith(".html")) {
-        renderHTML(artifact.content);
+      const artifactContainer = document.getElementById("artifact-display");
+      const htmlPreview = document.getElementById("html-preview");
+
+      if (artifact.filename.endsWith(".html") || artifact.content.trim().startsWith("<!DOCTYPE html>")) {
+        renderHTML(artifact.content, htmlPreview);
         this.showHtmlPreview = true;
+      } else if (artifact.content.startsWith("http")) {
+        // Handle remote content
+        const iframe = document.createElement("iframe");
+        iframe.src = artifact.content;
+        iframe.style.width = "100%";
+        iframe.style.height = "100%";
+        iframe.style.border = "none";
+        artifactContainer.innerHTML = "";
+        artifactContainer.appendChild(iframe);
+        this.showHtmlPreview = false;
       } else {
-        const artifactContainer = document.getElementById("artifact-display");
         artifactContainer.innerHTML = `<pre><code>${this.escapeHtml(artifact.content)}</code></pre>`;
         this.showHtmlPreview = false;
       }
@@ -267,6 +269,26 @@ function chatApp() {
       this.isArtifactExpanded = !this.isArtifactExpanded;
       const panel = document.getElementById("artifact-panel");
       panel.classList.toggle("expanded", this.isArtifactExpanded);
+      if (this.isArtifactExpanded) {
+        panel.style.position = "fixed";
+        panel.style.top = "0";
+        panel.style.left = "0";
+        panel.style.right = "0";
+        panel.style.bottom = "0";
+        panel.style.width = "100%";
+        panel.style.height = "100%";
+        panel.style.zIndex = "1000";
+      } else {
+        panel.style.position = "";
+        panel.style.top = "";
+        panel.style.left = "";
+        panel.style.right = "";
+        panel.style.bottom = "";
+        panel.style.width = "";
+        panel.style.height = "";
+        panel.style.zIndex = "";
+      }
+      this.displayCurrentArtifact(); // Refresh the display
     },
 
     initResizable() {
