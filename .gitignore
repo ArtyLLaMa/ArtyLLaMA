@@ -1,27 +1,28 @@
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Chroma DB
+chroma_db/
+
+# Artifacts
+artifacts/
+
 # Python
 __pycache__/
 *.py[cod]
-*.so
-
-# Virtual Environment
-venv/
-env/
-*.env
-
-# IDE files
-.vscode/
-.idea/
-.zed/
+*$py.class
 
 # OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
-
-# LLaMA models (these are usually large and should be downloaded separately)
-models/*.gguf
-
-# Logs
-*.log
-
-# Temporary files
-*.tmp

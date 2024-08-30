@@ -63,6 +63,22 @@ async function fetchAvailableModels() {
           this.selectedModel = this.availableModels[0];
         }
         this.initResizable();
+        await this.loadChatHistory();
+      },
+  
+      async loadChatHistory() {
+        try {
+          const response = await fetch('/chat_history');
+          if (response.ok) {
+            const history = await response.json();
+            this.chatHistory = history;
+            this.$nextTick(() => {
+              this.scrollChatToBottom();
+            });
+          }
+        } catch (error) {
+          console.error('Error loading chat history:', error);
+        }
       },
   
       async sendMessage() {
