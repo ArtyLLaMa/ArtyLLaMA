@@ -1,6 +1,8 @@
-# ArtyLLaMa - AI-Powered Chat Interface
+# ArtyLLaMa - AI-Powered Chat Interface with Artifacts!
 
 ArtyLLaMa is a React-based chat interface that integrates with the Ollama API to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, and HTML preview capabilities.
+
+<img width="1403" alt="image" src="https://github.com/user-attachments/assets/4d8b6207-5902-44a1-abcf-0d2ed03b422f">
 
 ## Features
 
