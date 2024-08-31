@@ -12,24 +12,14 @@ async function fetchAvailableModels() {
 }
 
 function renderHTML(htmlContent, container) {
-  // Create a sandboxed iframe
   const iframe = document.createElement("iframe");
   iframe.sandbox = "allow-scripts allow-same-origin";
   iframe.style.width = "100%";
   iframe.style.height = "100%";
   iframe.style.border = "none";
-
-  // Set the content of the iframe
   iframe.srcdoc = htmlContent;
-
-  // Replace the content of the preview area with the iframe
   container.innerHTML = "";
   container.appendChild(iframe);
-
-  // Adjust iframe height after content loads
-  iframe.onload = () => {
-    iframe.style.height = "100%";
-  };
 }
 
 function chatApp() {
@@ -41,18 +31,15 @@ function chatApp() {
     isLoading: false,
     showArtifact: false,
     artifacts: [],
-    currentArtifactIndex: -1,
+    currentArtifact: null,
     showHtmlPreview: false,
     systemMessage: "",
-    showSystemMessage: false,
-    isArtifactExpanded: false,
 
     async init() {
       this.availableModels = await fetchAvailableModels();
       if (this.availableModels.length > 0) {
         this.selectedModel = this.availableModels[0];
       }
-      this.initResizable();
       await this.loadChatHistory();
       await this.loadArtifacts();
     },
@@ -61,8 +48,7 @@ function chatApp() {
       try {
         const response = await fetch("/chat_history");
         if (response.ok) {
-          const history = await response.json();
-          this.chatHistory = history;
+          this.chatHistory = await response.json();
           this.$nextTick(() => {
             this.scrollChatToBottom();
           });
@@ -91,6 +77,7 @@ function chatApp() {
         role: "user",
         content: userMessage,
         id: Date.now(),
+        timestamp: new Date().toISOString(),
       });
       this.userInput = "";
       this.isLoading = true;
@@ -104,7 +91,7 @@ function chatApp() {
             model: this.selectedModel,
             prompt: userMessage,
             system_message: this.systemMessage,
-            chat_history: this.chatHistory.slice(-10), // Send last 10 messages for context
+            chat_history: this.chatHistory.slice(-10),
           }),
         });
 
@@ -121,6 +108,7 @@ function chatApp() {
           role: "assistant",
           content: "",
           id: responseId,
+          timestamp: new Date().toISOString(),
         });
 
         while (true) {
@@ -150,7 +138,6 @@ function chatApp() {
           }
         }
 
-        // Force a re-render of the chat history
         this.chatHistory = [...this.chatHistory];
       } catch (error) {
         console.error("Error:", error);
@@ -158,6 +145,7 @@ function chatApp() {
           role: "assistant",
           content: "An error occurred while generating the response.",
           id: Date.now() + 2,
+          timestamp: new Date().toISOString(),
         });
       } finally {
         this.isLoading = false;
@@ -170,7 +158,7 @@ function chatApp() {
 
     updateLastAssistantMessage(content, id) {
       const lastAssistantMessage = this.chatHistory.findLast(
-        (msg) => msg.role === "assistant",
+        (msg) => msg.role === "assistant"
       );
       if (lastAssistantMessage) {
         lastAssistantMessage.content = content;
@@ -179,27 +167,27 @@ function chatApp() {
     },
 
     handleNewArtifact(artifactData, artifactId) {
-      const newArtifact = { ...artifactData, id: artifactId };
+      const newArtifact = { ...artifactData, id: artifactId, timestamp: new Date().toISOString() };
       this.artifacts.unshift(newArtifact);
       this.showArtifact = true;
-      this.currentArtifactIndex = 0;
+      this.currentArtifact = newArtifact;
       this.displayCurrentArtifact();
       
-      // Add artifact reference to chat history
       this.chatHistory.push({
         role: "artifact",
         content: `Artifact created: ${artifactData.filename || 'HTML content'}`,
         artifactId: artifactId,
         id: Date.now(),
+        timestamp: new Date().toISOString(),
       });
       
       this.scrollChatToBottom();
     },
 
     openArtifact(artifactId) {
-      const index = this.artifacts.findIndex(artifact => artifact.id === artifactId);
-      if (index !== -1) {
-        this.currentArtifactIndex = index;
+      const artifact = this.artifacts.find(a => a.id === artifactId);
+      if (artifact) {
+        this.currentArtifact = artifact;
         this.showArtifact = true;
         this.displayCurrentArtifact();
       } else {
@@ -207,47 +195,51 @@ function chatApp() {
       }
     },
 
-    displayCurrentArtifact() {
-      if (this.currentArtifactIndex < 0) return;
-      const artifact = this.artifacts[this.currentArtifactIndex];
+    toggleArtifact() {
+      this.showArtifact = !this.showArtifact;
+      if (this.showArtifact && this.currentArtifact) {
+        this.$nextTick(() => {
+          this.displayCurrentArtifact();
+        });
+      }
+    },
 
-      const artifactContainer = document.getElementById("artifact-display");
+    displayCurrentArtifact() {
+      if (!this.currentArtifact) return;
+      const artifact = this.currentArtifact;
+
+      const codeView = document.getElementById("code-view");
       const htmlPreview = document.getElementById("html-preview");
+
+      // Always prepare both views
+      codeView.innerHTML = `<pre><code class="language-auto">${this.escapeHtml(artifact.content)}</code></pre>`;
+      hljs.highlightElement(codeView.querySelector('code'));
 
       if (artifact.filename.endsWith(".html") || artifact.content.trim().startsWith("<!DOCTYPE html>")) {
         renderHTML(artifact.content, htmlPreview);
         this.showHtmlPreview = true;
-      } else if (artifact.content.startsWith("http")) {
-        // Handle remote content
-        const iframe = document.createElement("iframe");
-        iframe.src = artifact.content;
-        iframe.style.width = "100%";
-        iframe.style.height = "100%";
-        iframe.style.border = "none";
-        artifactContainer.innerHTML = "";
-        artifactContainer.appendChild(iframe);
-        this.showHtmlPreview = false;
       } else {
-        artifactContainer.innerHTML = `<pre><code>${this.escapeHtml(artifact.content)}</code></pre>`;
         this.showHtmlPreview = false;
       }
     },
 
     toggleHtmlPreview() {
-      this.showHtmlPreview = !this.showHtmlPreview;
-      this.displayCurrentArtifact();
+      if (this.currentArtifact?.filename.endsWith(".html") || this.currentArtifact?.content.trim().startsWith("<!DOCTYPE html>")) {
+        this.showHtmlPreview = !this.showHtmlPreview;
+      } else {
+        alert("HTML preview is only available for HTML content.");
+      }
     },
 
     copyArtifact() {
-      if (this.currentArtifactIndex < 0) return;
-      const artifact = this.artifacts[this.currentArtifactIndex];
-      navigator.clipboard.writeText(artifact.content).then(
+      if (!this.currentArtifact) return;
+      navigator.clipboard.writeText(this.currentArtifact.content).then(
         () => {
-          alert("Code copied to clipboard!");
+          alert("Artifact content copied to clipboard!");
         },
         (err) => {
           console.error("Could not copy text: ", err);
-        },
+        }
       );
     },
 
@@ -265,61 +257,13 @@ function chatApp() {
       chatHistory.scrollTop = chatHistory.scrollHeight;
     },
 
-    toggleArtifactExpansion() {
-      this.isArtifactExpanded = !this.isArtifactExpanded;
-      const panel = document.getElementById("artifact-panel");
-      panel.classList.toggle("expanded", this.isArtifactExpanded);
-      if (this.isArtifactExpanded) {
-        panel.style.position = "fixed";
-        panel.style.top = "0";
-        panel.style.left = "0";
-        panel.style.right = "0";
-        panel.style.bottom = "0";
-        panel.style.width = "100%";
-        panel.style.height = "100%";
-        panel.style.zIndex = "1000";
-      } else {
-        panel.style.position = "";
-        panel.style.top = "";
-        panel.style.left = "";
-        panel.style.right = "";
-        panel.style.bottom = "";
-        panel.style.width = "";
-        panel.style.height = "";
-        panel.style.zIndex = "";
-      }
-      this.displayCurrentArtifact(); // Refresh the display
-    },
-
-    initResizable() {
-      const panel = document.getElementById("artifact-panel");
-      const handle = document.createElement("div");
-      handle.className = "resizable-handle";
-      panel.appendChild(handle);
-
-      let isResizing = false;
-      let startX, startWidth;
-
-      handle.addEventListener("mousedown", (e) => {
-        isResizing = true;
-        startX = e.clientX;
-        startWidth = parseInt(window.getComputedStyle(panel).width, 10);
-      });
-
-      document.addEventListener("mousemove", (e) => {
-        if (!isResizing) return;
-        const width = startWidth - (e.clientX - startX);
-        panel.style.width = `${Math.max(300, Math.min(width, window.innerWidth * 0.8))}px`;
-      });
-
-      document.addEventListener("mouseup", () => {
-        isResizing = false;
-      });
-    },
+    formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString();
+    }
   };
 }
 
-// Initialize Alpine.js
 document.addEventListener("alpine:init", () => {
   Alpine.data("chatApp", chatApp);
 });

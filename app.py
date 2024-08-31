@@ -160,11 +160,11 @@ def get_chat_history():
     try:
         conn = sqlite3.connect('chat_history.db')
         c = conn.cursor()
-        c.execute("SELECT role, content, id FROM chat_history ORDER BY timestamp DESC LIMIT 100")
+        c.execute("SELECT role, content, id, timestamp FROM chat_history ORDER BY timestamp DESC LIMIT 100")
         rows = c.fetchall()
         conn.close()
 
-        history = [{'role': role, 'content': content, 'id': id} for role, content, id in rows]
+        history = [{'role': role, 'content': content, 'id': id, 'timestamp': timestamp} for role, content, id, timestamp in rows]
         return jsonify(history[::-1])  # Reverse the order to get oldest first
     except Exception as e:
         logger.error(f"Error retrieving chat history: {str(e)}")
@@ -175,11 +175,11 @@ def get_artifacts():
     try:
         conn = sqlite3.connect('chat_history.db')
         c = conn.cursor()
-        c.execute("SELECT id, filename, content FROM artifacts ORDER BY timestamp DESC")
+        c.execute("SELECT id, filename, content, timestamp FROM artifacts ORDER BY timestamp DESC")
         rows = c.fetchall()
         conn.close()
 
-        artifacts = [{'id': id, 'filename': filename, 'content': content} for id, filename, content in rows]
+        artifacts = [{'id': id, 'filename': filename, 'content': content, 'timestamp': timestamp} for id, filename, content, timestamp in rows]
         return jsonify(artifacts)
     except Exception as e:
         logger.error(f"Error retrieving artifacts: {str(e)}")
