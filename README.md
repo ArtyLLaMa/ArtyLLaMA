@@ -1,4 +1,4 @@
-# ArtyLLaMa - (Arty)facts with an open-source large language model for everyone!
+# (Arty)facts with open-source large language models for everyone!
 
 ArtyLLaMa is a React-based chat interface that integrates with the Ollama API to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, and HTML preview capabilities.
 
