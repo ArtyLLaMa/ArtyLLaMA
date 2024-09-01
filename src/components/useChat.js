@@ -30,15 +30,15 @@ export const useChat = () => {
   const handleSubmit = useCallback(async (e) => {
     e.preventDefault();
     if (inputValue.trim()) {
-      const userMessage = { role: 'user', content: inputValue };
+      const userMessage = { role: 'user', content: inputValue, timestamp: new Date() };
       setMessages(prevMessages => [...prevMessages, userMessage]);
       setInputValue('');
       setIsLoading(true);
       setError(null);
-
+  
       const startTime = Date.now();
       let totalTokens = 0;
-
+  
       try {
         const response = await fetch(`${process.env.REACT_APP_OLLAMA_API_URL}/api/chat`, {
           method: 'POST',
@@ -47,7 +47,7 @@ export const useChat = () => {
             model: selectedModel,
             messages: [{ role: 'system', content: systemMessage }, ...messages, userMessage],
           }),
-        });
+        });  
 
         if (!response.ok) {
           const contentType = response.headers.get("content-type");
@@ -70,7 +70,9 @@ export const useChat = () => {
         };
 
         const reader = response.body.getReader();
-        let aiMessage = { role: 'assistant', content: '' };
+        let aiMessage = { role: 'assistant', content: '', timestamp: new Date() };
+
+        setMessages(prevMessages => [...prevMessages, aiMessage]);
 
         while (true) {
           const { done, value } = await reader.read();
@@ -86,7 +88,13 @@ export const useChat = () => {
             if (!data.done) {
               aiMessage.content += data.message.content;
               totalTokens += data.message.content.split(' ').length; // Rough estimate
-              setMessages(prevMessages => [...prevMessages.slice(0, -1), aiMessage]);
+              
+              // Update the last message (AI's response) in the chat history
+              setMessages(prevMessages => {
+                const newMessages = [...prevMessages];
+                newMessages[newMessages.length - 1] = { ...aiMessage };
+                return newMessages;
+              });
             } else {
               const endTime = Date.now();
               const duration = (endTime - startTime) / 1000; // in seconds
@@ -99,6 +107,7 @@ export const useChat = () => {
             }
           }
         }
+
       } catch (error) {
         console.error('Detailed error:', error);
         setError(`Failed to get a response from the AI. Error: ${error.message}`);

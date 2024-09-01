@@ -8,6 +8,13 @@ const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText,
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const formatTimestamp = (date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+    }).format(date);
+  };
+
   return (
     <div className="flex-grow flex flex-col overflow-hidden">
       <div className="flex-grow overflow-y-auto p-4">
@@ -16,6 +23,9 @@ const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText,
           <div key={index} className={`mb-4 ${message.role === 'user' ? 'text-right' : 'text-left'}`}>
             <div className={`inline-block p-3 rounded-lg ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'} max-w-[80%]`}>
               {message.content}
+              <div className="text-xs text-gray-400 mt-1">
+                {formatTimestamp(message.timestamp)}
+              </div>
             </div>
           </div>
         ))}
