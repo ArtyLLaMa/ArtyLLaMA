@@ -1,30 +1,27 @@
-import React, { useState, useCallback } from 'react';
-import { Sidebar as SidebarIcon, Maximize2 } from 'lucide-react';
+import React, { useState, useCallback, useEffect } from 'react';
+import { Sidebar as SidebarIcon } from 'lucide-react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import ChatArea from './ChatArea';
 import PreviewPanel from './PreviewPanel';
 import SettingsModal from './SettingsModal';
-import ExpandedPreviewModal from './ExpandedPreviewModal';
 import { useChat } from './useChat';
+import { parseArtifacts } from '../utils/artifactParser';
 
 const LLMChatInterface = () => {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(true);
-  const [showCode, setShowCode] = useState(false);
+  const [artifacts, setArtifacts] = useState([]);
 
   const {
     messages,
     inputValue,
     setInputValue,
     placeholderText,
-    previewContent,
     error,
     selectedModel,
     setSelectedModel,
-    codeLanguage,
     isLoading,
     systemMessage,
     setSystemMessage,
@@ -32,10 +29,18 @@ const LLMChatInterface = () => {
     handleSubmit,
   } = useChat();
 
-  const toggleExpand = useCallback(() => setIsExpanded(prev => !prev), []);
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'assistant') {
+        const parsedArtifacts = parseArtifacts(lastMessage.content);
+        setArtifacts(parsedArtifacts);
+      }
+    }
+  }, [messages]);
+
   const toggleSettings = useCallback(() => setIsSettingsOpen(prev => !prev), []);
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
-  const toggleCodeView = useCallback(() => setShowCode(prev => !prev), []);
   const togglePreview = useCallback(() => setIsPreviewOpen(prev => !prev), []);
 
   return (
@@ -65,18 +70,14 @@ const LLMChatInterface = () => {
           handleSubmit={handleSubmit}
         />
 
-        {isPreviewOpen && !isExpanded && (
+        {isPreviewOpen && artifacts.length > 0 && (
           <PreviewPanel
-            showCode={showCode}
-            toggleCodeView={toggleCodeView}
-            toggleExpand={toggleExpand}
-            codeLanguage={codeLanguage}
-            previewContent={previewContent}
+            artifacts={artifacts}
             closePreview={togglePreview}
           />
         )}
 
-        {!isPreviewOpen && !isExpanded && (
+        {!isPreviewOpen && artifacts.length > 0 && (
           <button
             onClick={togglePreview}
             className="absolute right-4 bottom-4 p-2 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
@@ -86,16 +87,6 @@ const LLMChatInterface = () => {
           </button>
         )}
       </div>
-
-      {isExpanded && (
-        <ExpandedPreviewModal
-          toggleExpand={toggleExpand}
-          showCode={showCode}
-          toggleCodeView={toggleCodeView}
-          codeLanguage={codeLanguage}
-          previewContent={previewContent}
-        />
-      )}
 
       {isSettingsOpen && (
         <SettingsModal

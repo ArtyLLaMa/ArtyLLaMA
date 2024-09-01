@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useRef } from 'react';
+// src/components/SandboxedHtmlPreview.js
+import React, { forwardRef, useEffect, useState } from 'react';
 import DOMPurify from 'dompurify';
 
-const SandboxedHtmlPreview = ({ htmlContent }) => {
-  const iframeRef = useRef(null);
+const SandboxedHtmlPreview = forwardRef(({ htmlContent, cssContent, jsContent }, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -11,52 +11,35 @@ const SandboxedHtmlPreview = ({ htmlContent }) => {
     setError(null);
 
     try {
-      // Configure DOMPurify to allow scripts and canvas
       const purifyConfig = { ADD_TAGS: ["script", "canvas"], FORCE_BODY: true };
       const sanitizedHtml = DOMPurify.sanitize(htmlContent, purifyConfig);
       
-      const blob = new Blob([`
+      const fullContent = `
         <!DOCTYPE html>
         <html>
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>
-              body {
-                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-                line-height: 1.6;
-                color: #333;
-                padding: 20px;
-                margin: 0;
-                background-color: #f0f0f0;
-              }
-              canvas { 
-                border: 1px solid #000;
-                display: block;
-                margin: 0 auto;
-              }
-            </style>
+            <style>${cssContent}</style>
           </head>
           <body>${sanitizedHtml}</body>
+          <script>${jsContent}</script>
         </html>
-      `], { type: 'text/html' });
-      const url = URL.createObjectURL(blob);
-      
-      if (iframeRef.current) {
-        iframeRef.current.onload = () => setIsLoading(false);
-        iframeRef.current.onerror = () => {
+      `;
+
+      if (ref.current) {
+        ref.current.onload = () => setIsLoading(false);
+        ref.current.onerror = () => {
           setError('Failed to load content');
           setIsLoading(false);
         };
-        iframeRef.current.src = url;
+        ref.current.srcdoc = fullContent;
       }
-
-      return () => URL.revokeObjectURL(url);
     } catch (err) {
       setError('Error processing HTML content');
       setIsLoading(false);
     }
-  }, [htmlContent]);
+  }, [htmlContent, cssContent, jsContent]);
 
   return (
     <div className="relative w-full h-full bg-gray-100">
@@ -73,13 +56,13 @@ const SandboxedHtmlPreview = ({ htmlContent }) => {
         </div>
       )}
       <iframe
-        ref={iframeRef}
+        ref={ref}
         sandbox="allow-scripts"
         className="w-full h-full border-none bg-white"
         title="HTML Preview"
       />
     </div>
   );
-};
+});
 
 export default SandboxedHtmlPreview;
