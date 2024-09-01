@@ -1,5 +1,7 @@
 {
- "name": "App",
+ "short_name": "ArtyLLaMa",
+ "name": "ArtyLLaMa Chat Interface",
+ "description": "An AI-powered chat interface for interacting with open-source language models",
  "icons": [
   {
    "src": "\/android-icon-36x36.png",
@@ -37,5 +39,12 @@
    "type": "image\/png",
    "density": "4.0"
   }
- ]
+ ],
+ "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#1a1a1a",
+  "background_color": "#ffffff",
+  "orientation": "any",
+  "categories": ["productivity", "artificial intelligence", "chat"],
+  "prefer_related_applications": false
 }
