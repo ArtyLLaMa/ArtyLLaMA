@@ -9,7 +9,7 @@ export const useChat = () => {
   const [selectedModel, setSelectedModel] = useState('');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
   const [isLoading, setIsLoading] = useState(false);
-  const [systemMessage, setSystemMessage] = useState('You are Arty, an AI assistant specialized in creating website elements, animations, and visual components. Your task is to generate the necessary code for any visual element requested, ensuring all elements are wrapped in appropriate HTML code blocks. This includes placing CSS in <style> tags, JavaScript in <script> tags, and ensuring the overall structure is encapsulated within <html>, <head>, and <body> tags as needed. If an animation or other functionality is requested, ensure that all required code is properly structured to allow for correct rendering and functionality.');
+  const [systemMessage, setSystemMessage] = useState('You are an AI assistant specialized in creating website elements, animations, and visual components.');
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
 
   const placeholders = useMemo(() => [
@@ -35,78 +35,80 @@ export const useChat = () => {
       setInputValue('');
       setIsLoading(true);
       setError(null);
-  
+
       const startTime = Date.now();
       let totalTokens = 0;
-  
+
       try {
-        const response = await fetch(`${process.env.REACT_APP_OLLAMA_API_URL}/api/chat`, {
+        const response = await fetch('/api/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             model: selectedModel,
             messages: [{ role: 'system', content: systemMessage }, ...messages, userMessage],
           }),
-        });  
+        });
 
         if (!response.ok) {
-          const contentType = response.headers.get("content-type");
-          if (contentType && contentType.indexOf("application/json") !== -1) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || `API request failed with status ${response.status}`);
-          } else {
-            const errorText = await response.text();
-            throw new Error(`API request failed: ${errorText}`);
-          }
+          throw new Error(`API responded with ${response.status}`);
         }
 
-        const detectContentType = (content) => {
-          const trimmedContent = content.trim();
-          if (trimmedContent.startsWith('<') && trimmedContent.endsWith('>')) {
-            setCodeLanguage('html');
-          } else {
-            setCodeLanguage('javascript');
-          }
-        };
-
         const reader = response.body.getReader();
+        const decoder = new TextDecoder();
         let aiMessage = { role: 'assistant', content: '', timestamp: new Date() };
 
-        setMessages(prevMessages => [...prevMessages, aiMessage]);
-
         while (true) {
-          const { done, value } = await reader.read();
+          const { value, done } = await reader.read();
           if (done) break;
-
-          const chunk = new TextDecoder().decode(value);
+          
+          const chunk = decoder.decode(value);
           const lines = chunk.split('\n');
           
           for (const line of lines) {
-            if (line.trim() === '') continue;
-            const data = JSON.parse(line);
-            
-            if (!data.done) {
-              aiMessage.content += data.message.content;
-              totalTokens += data.message.content.split(' ').length; // Rough estimate
+            if (line.startsWith('data: ')) {
+              const data = line.slice(5).trim();
               
-              // Update the last message (AI's response) in the chat history
-              setMessages(prevMessages => {
-                const newMessages = [...prevMessages];
-                newMessages[newMessages.length - 1] = { ...aiMessage };
-                return newMessages;
-              });
-            } else {
-              const endTime = Date.now();
-              const duration = (endTime - startTime) / 1000; // in seconds
-              setStats({
-                tokensPerSecond: Math.round(totalTokens / duration),
-                totalTokens: totalTokens
-              });
-              setPreviewContent(aiMessage.content);
-              detectContentType(aiMessage.content);
+              if (data === '[DONE]') {
+                continue; // Skip [DONE] messages
+              }
+              
+              try {
+                const parsedData = JSON.parse(data);
+                if (parsedData.content) {
+                  aiMessage.content += parsedData.content;
+                  aiMessage.provider = parsedData.provider;
+                  
+                  setMessages(prevMessages => {
+                    const updatedMessages = [...prevMessages];
+                    const lastMessage = updatedMessages[updatedMessages.length - 1];
+                    if (lastMessage.role === 'assistant') {
+                      updatedMessages[updatedMessages.length - 1] = { ...aiMessage };
+                    } else {
+                      updatedMessages.push({ ...aiMessage });
+                    }
+                    return updatedMessages;
+                  });
+
+                  setPreviewContent(aiMessage.content);
+                  totalTokens += 1; // Increment token count (rough estimate)
+                }
+                if (parsedData.fullContent) {
+                  // This is the final message
+                  totalTokens = parsedData.fullContent.split(' ').length; // More accurate count
+                }
+              } catch (parseError) {
+                console.error('Error parsing JSON:', parseError);
+              }
             }
           }
         }
+
+        const endTime = Date.now();
+        const duration = (endTime - startTime) / 1000; // in seconds
+        setStats({
+          tokensPerSecond: Math.round(totalTokens / duration),
+          totalTokens: totalTokens
+        });
 
       } catch (error) {
         console.error('Detailed error:', error);
