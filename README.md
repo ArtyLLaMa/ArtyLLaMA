@@ -1,8 +1,26 @@
+
+![apple-icon-180x180](https://github.com/user-attachments/assets/2ea7b0d1-d41d-41c8-a382-145829a50251)
+
 # (Arty)facts with open-source large language models for everyone!
 
 ArtyLLaMa is a React-based chat interface that integrates with the Ollama API to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, and HTML preview capabilities.
 
 <img width="1403" alt="image" src="https://github.com/user-attachments/assets/4d8b6207-5902-44a1-abcf-0d2ed03b422f">
+
+## Project Status
+
+ArtyLLaMa is in its early stages and under active development. We welcome contributions and feedback from the community!
+
+[![Activity Overview](https://img.shields.io/github/commit-activity/m/kroonen/artyllama)](https://github.com/kroonen/artyllama/graphs/commit-activity)
+[![Open PRs](https://img.shields.io/github/issues-pr/kroonen/artyllama)](https://github.com/kroonen/artyllama/pulls)
+[![Stars](https://img.shields.io/github/stars/kroonen/artyllama)](https://github.com/kroonen/artyllama/stargazers)
+[![Contributors](https://img.shields.io/github/contributors/kroonen/artyllama)](https://github.com/kroonen/artyllama/graphs/contributors)
+
+![GitHub Contributors Image](https://contrib.rocks/image?repo=kroonen/artyllama)
+
+### Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=kroonen/artyllama&type=Date)](https://star-history.com/#kroonen/artyllama&Date)
 
 ## Features
 
@@ -25,7 +43,7 @@ Before you begin, ensure you have met the following requirements:
 
 1. Clone the repository:
    ```
-   git clone https://github.com/yourusername/artyllama.git
+   git clone https://github.com/kroonen/artyllama.git
    cd artyllama
    ```
 
@@ -50,12 +68,6 @@ npm start
 
 The application will be available at `http://localhost:3000`.
 
-## Main Components
-
-- `LLMChatInterface`: The main component that handles the chat logic and UI.
-- `SandboxedHtmlPreview`: A component that safely renders HTML content, including scripts and canvas elements.
-- `PreviewPanel`: Displays code and rendered HTML content with toggle functionality.
-
 ## API Integration
 
 The application integrates with the Ollama API for the following functionalities:
@@ -70,34 +82,9 @@ The application integrates with the Ollama API for the following functionalities
 - Scripts are allowed to run in a sandboxed iframe for interactive HTML previews.
 - Ensure that you trust the source of AI-generated content, especially when rendering HTML and scripts.
 
-## App Icons
-
-This project now includes a comprehensive set of app icons for various platforms and devices:
-
-- Favicon: Available in 16x16, 32x32, and 96x96 sizes
-- Android: Icons ranging from 36x36 to 192x192
-- Apple iOS: Icons ranging from 57x57 to 180x180, including the apple-touch-icon
-- Microsoft: Icons for Windows devices, including sizes up to 310x310
-
-These icons ensure that ArtyLLaMA looks great across different devices and platforms, enhancing the user experience whether accessed via web browsers or installed as a Progressive Web App.
-
-To use these icons on your own deployment:
-1. Ensure all icon files are in the `public` directory of your project.
-2. The `manifest.json` file in the `public` directory has been updated to reference these new icons.
-3. Update your `index.html` to include necessary link tags for different platforms.
-
-For developers: If you're contributing to this project, please ensure any app-wide visual changes are reflected in these icons to maintain consistency.
-
 ## Contributing
 
-Contributions to ArtyLLaMa are welcome. Please follow these steps:
-
-1. Fork the repository
-2. Create a new branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Commit your changes (`git commit -m 'Add some amazing feature'`)
-5. Push to the branch (`git push origin feature/amazing-feature`)
-6. Open a Pull Request
+Contributions to ArtyLLaMa are welcome.
 
 ## License
 
@@ -109,3 +96,4 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - React and Create React App for the frontend framework
 - Tailwind CSS for styling
 - DOMPurify for HTML sanitization
+- A special shout-out to Dependabot, our tireless digital guardian. While it may not write code, it certainly keeps our dependencies in check with the enthusiasm of a caffeinated squirrel. 🤖🎉
