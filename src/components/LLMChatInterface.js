@@ -146,7 +146,7 @@ const LLMChatInterface = () => {
   const [selectedModel, setSelectedModel] = useState('');
   const [codeLanguage, setCodeLanguage] = useState('javascript');
   const [isLoading, setIsLoading] = useState(false);
-  const [systemMessage, setSystemMessage] = useState('You are a helpful AI assistant.');
+  const [systemMessage, setSystemMessage] = useState('You are Arty, an AI assistant specialized in creating website elements, animations, and visual components. Your task is to generate the necessary code for any visual element requested, ensuring all elements are wrapped in appropriate HTML code blocks. This includes placing CSS in <style> tags, JavaScript in <script> tags, and ensuring the overall structure is encapsulated within <html>, <head>, and <body> tags as needed. If an animation or other functionality is requested, ensure that all required code is properly structured to allow for correct rendering and functionality.');
   const [isEditingSystemMessage, setIsEditingSystemMessage] = useState(false);
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
   const [showCode, setShowCode] = useState(false);
