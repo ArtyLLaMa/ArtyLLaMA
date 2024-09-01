@@ -70,13 +70,23 @@ The application integrates with the Ollama API for the following functionalities
 - Scripts are allowed to run in a sandboxed iframe for interactive HTML previews.
 - Ensure that you trust the source of AI-generated content, especially when rendering HTML and scripts.
 
-## Customization
+## App Icons
 
-You can customize the appearance and behavior of the chat interface by modifying the following files:
+This project now includes a comprehensive set of app icons for various platforms and devices:
 
-- `src/components/LLMChatInterface.js`: Main chat component
-- `src/components/SandboxedHtmlPreview.js`: HTML preview component
-- `src/styles/tailwind.css`: Tailwind CSS customizations
+- Favicon: Available in 16x16, 32x32, and 96x96 sizes
+- Android: Icons ranging from 36x36 to 192x192
+- Apple iOS: Icons ranging from 57x57 to 180x180, including the apple-touch-icon
+- Microsoft: Icons for Windows devices, including sizes up to 310x310
+
+These icons ensure that ArtyLLaMA looks great across different devices and platforms, enhancing the user experience whether accessed via web browsers or installed as a Progressive Web App.
+
+To use these icons on your own deployment:
+1. Ensure all icon files are in the `public` directory of your project.
+2. The `manifest.json` file in the `public` directory has been updated to reference these new icons.
+3. Update your `index.html` to include necessary link tags for different platforms.
+
+For developers: If you're contributing to this project, please ensure any app-wide visual changes are reflected in these icons to maintain consistency.
 
 ## Contributing
 
