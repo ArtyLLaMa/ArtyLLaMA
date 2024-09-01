@@ -1,12 +1,11 @@
-import React, { useState, useCallback } from 'react';
-import { Sidebar as SidebarIcon, Maximize2 } from 'lucide-react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import Header from './Header';
 import Sidebar from './Sidebar';
 import ChatArea from './ChatArea';
 import PreviewPanel from './PreviewPanel';
 import SettingsModal from './SettingsModal';
 import ExpandedPreviewModal from './ExpandedPreviewModal';
-import { useChat } from './useChat';
+import { useChat } from './useChat'; // We'll create this custom hook
 
 const LLMChatInterface = () => {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -14,6 +13,7 @@ const LLMChatInterface = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [isPreviewOpen, setIsPreviewOpen] = useState(true);
   const [showCode, setShowCode] = useState(false);
+  const [isArtifactOpen, setIsArtifactOpen] = useState(false);
 
   const {
     messages,
@@ -36,7 +36,7 @@ const LLMChatInterface = () => {
   const toggleSettings = useCallback(() => setIsSettingsOpen(prev => !prev), []);
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
   const toggleCodeView = useCallback(() => setShowCode(prev => !prev), []);
-  const togglePreview = useCallback(() => setIsPreviewOpen(prev => !prev), []);
+  const toggleArtifact = useCallback(() => setIsArtifactOpen(prev => !prev), []);
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300 font-sans">
@@ -65,25 +65,14 @@ const LLMChatInterface = () => {
           handleSubmit={handleSubmit}
         />
 
-        {isPreviewOpen && !isExpanded && (
+        {isPreviewOpen && (
           <PreviewPanel
             showCode={showCode}
             toggleCodeView={toggleCodeView}
             toggleExpand={toggleExpand}
             codeLanguage={codeLanguage}
             previewContent={previewContent}
-            closePreview={togglePreview}
           />
-        )}
-
-        {!isPreviewOpen && !isExpanded && (
-          <button
-            onClick={togglePreview}
-            className="absolute right-4 bottom-4 p-2 bg-blue-500 rounded-full hover:bg-blue-600 transition-colors"
-            title="Open Preview Panel"
-          >
-            <SidebarIcon size={24} />
-          </button>
         )}
       </div>
 
@@ -91,7 +80,6 @@ const LLMChatInterface = () => {
         <ExpandedPreviewModal
           toggleExpand={toggleExpand}
           showCode={showCode}
-          toggleCodeView={toggleCodeView}
           codeLanguage={codeLanguage}
           previewContent={previewContent}
         />

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import Select from 'react-select';
 
-const ModelManagement = () => {
+const ModelManagement = ({ onModelSelect, selectedModel }) => {
   const [models, setModels] = useState([]);
   const [newModelName, setNewModelName] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,16 +59,47 @@ const ModelManagement = () => {
     }
   };
 
+  const options = models.map(model => ({ value: model.name, label: model.name }));
+
   return (
     <div className="p-4">
       <h2 className="text-2xl font-bold mb-4">Model Management</h2>
+      <Select
+        options={options}
+        value={options.find(option => option.value === selectedModel)}
+        onChange={(selectedOption) => onModelSelect(selectedOption.value)}
+        className="mb-4"
+        styles={{
+          control: (provided) => ({
+            ...provided,
+            backgroundColor: '#374151',
+            borderColor: '#4B5563',
+          }),
+          singleValue: (provided) => ({
+            ...provided,
+            color: '#D1D5DB',
+          }),
+          menu: (provided) => ({
+            ...provided,
+            backgroundColor: '#374151',
+          }),
+          option: (provided, state) => ({
+            ...provided,
+            backgroundColor: state.isSelected ? '#4B5563' : '#374151',
+            color: '#D1D5DB',
+            '&:hover': {
+              backgroundColor: '#4B5563',
+            },
+          }),
+        }}
+      />
       <div className="mb-4">
         <input
           type="text"
           value={newModelName}
           onChange={(e) => setNewModelName(e.target.value)}
           placeholder="Enter model name"
-          className="mr-2 p-2 border rounded"
+          className="mr-2 p-2 border rounded bg-gray-700 text-white"
         />
         <button onClick={pullModel} className="bg-blue-500 text-white p-2 rounded">
           Pull Model
