@@ -1,31 +1,34 @@
-// src/components/SandboxedHtmlPreview.js
-import React, { forwardRef, useEffect, useState } from 'react';
+import React, { forwardRef, useEffect, useState, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 
 const SandboxedHtmlPreview = forwardRef(({ htmlContent, cssContent, jsContent }, ref) => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const createSanitizedContent = useCallback(() => {
+    const purifyConfig = { ADD_TAGS: ["script", "canvas"], FORCE_BODY: true };
+    const sanitizedHtml = DOMPurify.sanitize(htmlContent, purifyConfig);
+    
+    return `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <style>${cssContent}</style>
+        </head>
+        <body>${sanitizedHtml}</body>
+        <script>${jsContent}</script>
+      </html>
+    `;
+  }, [htmlContent, cssContent, jsContent]);
+
   useEffect(() => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const purifyConfig = { ADD_TAGS: ["script", "canvas"], FORCE_BODY: true };
-      const sanitizedHtml = DOMPurify.sanitize(htmlContent, purifyConfig);
-      
-      const fullContent = `
-        <!DOCTYPE html>
-        <html>
-          <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <style>${cssContent}</style>
-          </head>
-          <body>${sanitizedHtml}</body>
-          <script>${jsContent}</script>
-        </html>
-      `;
+      const fullContent = createSanitizedContent();
 
       if (ref.current) {
         ref.current.onload = () => setIsLoading(false);
@@ -39,7 +42,7 @@ const SandboxedHtmlPreview = forwardRef(({ htmlContent, cssContent, jsContent },
       setError('Error processing HTML content');
       setIsLoading(false);
     }
-  }, [htmlContent, cssContent, jsContent]);
+  }, [createSanitizedContent, ref]);
 
   return (
     <div className="relative w-full h-full bg-gray-100">
@@ -64,5 +67,7 @@ const SandboxedHtmlPreview = forwardRef(({ htmlContent, cssContent, jsContent },
     </div>
   );
 });
+
+SandboxedHtmlPreview.displayName = 'SandboxedHtmlPreview';
 
 export default SandboxedHtmlPreview;

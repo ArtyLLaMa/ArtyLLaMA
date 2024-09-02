@@ -119,6 +119,10 @@ export const useChat = () => {
     }
   }, [inputValue, messages, selectedModel, systemMessage]);
 
+  const updateCodeLanguage = useCallback((language) => {
+    setCodeLanguage(language);
+  }, []);
+
   return {
     messages,
     inputValue,
@@ -129,6 +133,7 @@ export const useChat = () => {
     selectedModel,
     setSelectedModel,
     codeLanguage,
+    updateCodeLanguage,
     isLoading,
     systemMessage,
     setSystemMessage,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Code, Eye, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
@@ -10,13 +10,18 @@ const PreviewPanel = ({ artifacts, closePreview }) => {
   const [selectedTab, setSelectedTab] = useState('html');
   const iframeRef = useRef(null);
 
-  useEffect(() => {
+  const updateIframeContent = useCallback(() => {
     if (iframeRef.current) {
       iframeRef.current.srcdoc = artifacts[currentArtifact].html;
     }
   }, [currentArtifact, artifacts]);
 
+  useEffect(() => {
+    updateIframeContent();
+  }, [updateIframeContent]);
+
   const toggleCodeView = () => setIsCodeView(!isCodeView);
+  
   const toggleFullscreen = () => {
     if (iframeRef.current) {
       if (document.fullscreenElement) {
