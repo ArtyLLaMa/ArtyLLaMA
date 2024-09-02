@@ -2,7 +2,7 @@
 
 # (Arty)facts with open-source large language models for everyone!
 
-ArtyLLaMa is a React-based chat interface that integrates with multiple AI providers including Ollama, OpenAI, and Anthropic to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, HTML preview capabilities, and artifact rendering.
+ArtyLLaMa is a React-based chat interface that integrates with multiple AI providers including Ollama, OpenAI, and Anthropic to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, HTML preview capabilities, and artifact rendering, including SVG support.
 
 <img width="1403" alt="image" src="https://github.com/user-attachments/assets/4d8b6207-5902-44a1-abcf-0d2ed03b422f">
 
@@ -29,6 +29,7 @@ ArtyLLaMa is in its early stages and under active development. We welcome contri
 - HTML preview with interactive canvas and script support
 - Responsive design with expandable preview panel
 - Artifact rendering for various content types (HTML, SVG, code snippets, etc.)
+- SVG rendering support for AI-generated vector graphics
 - Error handling and loading indicators for a smooth user experience
 - Server-side streaming of AI responses
 - Customizable system messages
