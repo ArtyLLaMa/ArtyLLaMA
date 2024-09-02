@@ -1,29 +1,35 @@
 {
-  "name": "llm-chat-interface",
+  "name": "artyllama",
   "version": "0.1.0",
   "private": true,
-  "proxy": "http://localhost:11434",
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.27.1",
+    "@tailwindcss/forms": "^0.5.8",
+    "@tailwindcss/typography": "^0.5.15",
     "@testing-library/jest-dom": "^5.16.5",
     "@testing-library/react": "^13.4.0",
     "@testing-library/user-event": "^13.5.0",
-    "audit": "^0.0.6",
+    "axios": "^1.7.7",
     "dompurify": "^3.1.6",
-    "fix": "^0.0.3",
-    "lucide-react": "^0.221.0",
-    "npm": "^10.8.3",
-    "react": "^18.3.1",
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "lucide-react": "^0.437.0",
+    "openai": "^4.0.0",
+    "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "react-scripts": "^5.0.1",
+    "react-scripts": "5.0.1",
     "react-select": "^5.8.0",
     "react-syntax-highlighter": "^15.5.0",
-    "web-vitals": "^4.2.3"
+    "tailwindcss": "^3.4.10",
+    "web-vitals": "4.2.3",
+    "winston": "^3.14.2"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "server": "node server.js"
   },
   "eslintConfig": {
     "extends": [
@@ -43,11 +49,5 @@
       "last 1 safari version"
     ]
   },
-  "devDependencies": {
-    "@tailwindcss/forms": "^0.5.8",
-    "@tailwindcss/typography": "^0.5.15",
-    "autoprefixer": "^10.4.20",
-    "postcss": "^8.4.42",
-    "tailwindcss": "^3.4.10"
-  }
+  "proxy": "http://localhost:3001"
 }
