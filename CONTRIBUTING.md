@@ -14,7 +14,7 @@ First off, thank you for considering contributing to ArtyLLaMa! It's people like
 
 ## Code of Conduct
 
-This project and everyone participating in it is governed by the [ArtyLLaMa Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to [maintainer's email].
+This project and everyone participating in it is governed by the [ArtyLLaMa Code of Conduct](CODE_OF_CONDUCT.md). By participating, you are expected to uphold this code. Please report unacceptable behavior to rob@artyllama.com.
 
 ## Getting Started
 
