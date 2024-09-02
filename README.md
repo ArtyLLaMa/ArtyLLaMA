@@ -1,9 +1,8 @@
-
 ![apple-icon-180x180](https://github.com/user-attachments/assets/2ea7b0d1-d41d-41c8-a382-145829a50251)
 
 # (Arty)facts with open-source large language models for everyone!
 
-ArtyLLaMa is a React-based chat interface that integrates with the Ollama API to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, and HTML preview capabilities.
+ArtyLLaMa is a React-based chat interface that integrates with multiple AI providers including Ollama, OpenAI, and Anthropic to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, HTML preview capabilities, and artifact rendering.
 
 <img width="1403" alt="image" src="https://github.com/user-attachments/assets/4d8b6207-5902-44a1-abcf-0d2ed03b422f">
 
@@ -24,12 +23,15 @@ ArtyLLaMa is in its early stages and under active development. We welcome contri
 
 ## Features
 
-- Real-time chat interface with AI models powered by Ollama
-- Dynamic model selection from available Ollama models
+- Real-time chat interface with AI models powered by Ollama, OpenAI, and Anthropic
+- Dynamic model selection from available AI models
 - Code syntax highlighting for various programming languages
 - HTML preview with interactive canvas and script support
 - Responsive design with expandable preview panel
+- Artifact rendering for various content types (HTML, SVG, code snippets, etc.)
 - Error handling and loading indicators for a smooth user experience
+- Server-side streaming of AI responses
+- Customizable system messages
 
 ## Prerequisites
 
@@ -37,7 +39,8 @@ Before you begin, ensure you have met the following requirements:
 
 - Node.js (v14 or later)
 - npm (v6 or later)
-- Ollama running locally or on an accessible server
+- Ollama running locally or on an accessible server (for Ollama models)
+- API keys for OpenAI and Anthropic (if using these providers)
 
 ## Installation
 
@@ -54,9 +57,11 @@ Before you begin, ensure you have met the following requirements:
 
 3. Create a `.env` file in the root directory and add the following:
    ```
-   REACT_APP_OLLAMA_API_URL=http://localhost:11434
+   OLLAMA_API_URL=http://localhost:11434
+   OPENAI_API_KEY=your_openai_api_key_here
+   ANTHROPIC_API_KEY=your_anthropic_api_key_here
    ```
-   Replace the URL with your Ollama server address if it's not running locally.
+   Replace the URLs and API keys with your actual values.
 
 ## Usage
 
@@ -68,23 +73,59 @@ npm start
 
 The application will be available at `http://localhost:3000`.
 
+To start the backend server:
+
+```
+node server.js
+```
+
+## Project Structure
+
+```
+src
+├── app.js
+├── components
+│   ├── ArtifactRenderer.js
+│   ├── ChatArea.js
+│   ├── ErrorMessage.js
+│   ├── ExpandedPreviewModal.js
+│   ├── Header.js
+│   ├── LLMChatInterface.js
+│   ├── ModelManagement.js
+│   ├── PreviewPanel.js
+│   ├── SandboxedHtmlPreview.js
+│   ├── SettingsModal.js
+│   ├── Sidebar.js
+│   └── useChat.js
+├── index.js
+└── styles
+    └── tailwind.css
+```
+
 ## API Integration
 
-The application integrates with the Ollama API for the following functionalities:
+The application integrates with multiple AI providers:
 
+- Ollama API for local models
+- OpenAI API for GPT models
+- Anthropic API for Claude models
+
+Functionalities include:
 - Fetching available models
 - Sending chat messages and receiving AI responses
 - Streaming responses for real-time updates
+- Artifact creation and rendering
 
 ## Security Considerations
 
 - The application uses DOMPurify to sanitize HTML content before rendering.
 - Scripts are allowed to run in a sandboxed iframe for interactive HTML previews.
 - Ensure that you trust the source of AI-generated content, especially when rendering HTML and scripts.
+- API keys are stored in environment variables and should never be exposed in the frontend code.
 
 ## Contributing
 
-Contributions to ArtyLLaMa are welcome.
+Contributions to ArtyLLaMa are welcome. Please ensure you follow the existing code style and structure when submitting pull requests.
 
 ## License
 
@@ -92,8 +133,9 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 
 ## Acknowledgments
 
-- Ollama for providing the AI backend
+- Ollama, OpenAI, and Anthropic for providing AI backends
 - React and Create React App for the frontend framework
 - Tailwind CSS for styling
 - DOMPurify for HTML sanitization
+- Express.js for the backend server
 - A special shout-out to Dependabot, our tireless digital guardian. While it may not write code, it certainly keeps our dependencies in check with the enthusiasm of a caffeinated squirrel. 🤖🎉
