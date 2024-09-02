@@ -1,71 +1,36 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Code, Eye, Maximize2, X, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import SandboxedHtmlPreview from './SandboxedHtmlPreview';
+import React, { useState, useEffect } from 'react';
+import { X, ChevronLeft, ChevronRight, Maximize2 } from 'lucide-react';
+import { ArtifactRenderer } from './ArtifactRenderer';
 
 const PreviewPanel = ({ artifacts, closePreview }) => {
-  const [currentArtifact, setCurrentArtifact] = useState(0);
-  const [isCodeView, setIsCodeView] = useState(false);
-  const [selectedTab, setSelectedTab] = useState('html');
-  const iframeRef = useRef(null);
-
-  const updateIframeContent = useCallback(() => {
-    if (iframeRef.current) {
-      iframeRef.current.srcdoc = artifacts[currentArtifact].html;
-    }
-  }, [currentArtifact, artifacts]);
+  const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   useEffect(() => {
-    updateIframeContent();
-  }, [updateIframeContent]);
+    console.log('Artifacts in PreviewPanel:', artifacts); // Debug log
+  }, [artifacts]);
 
-  const toggleCodeView = () => setIsCodeView(!isCodeView);
-  
-  const toggleFullscreen = () => {
-    if (iframeRef.current) {
-      if (document.fullscreenElement) {
-        document.exitFullscreen();
-      } else {
-        iframeRef.current.requestFullscreen();
-      }
-    }
+  const nextArtifact = () => {
+    setCurrentArtifactIndex((prev) => (prev + 1) % artifacts.length);
   };
 
-  const nextArtifact = () => setCurrentArtifact((prev) => (prev + 1) % artifacts.length);
-  const prevArtifact = () => setCurrentArtifact((prev) => (prev - 1 + artifacts.length) % artifacts.length);
+  const prevArtifact = () => {
+    setCurrentArtifactIndex((prev) => (prev - 1 + artifacts.length) % artifacts.length);
+  };
 
-  const renderCodeView = () => (
-    <div className="h-full overflow-auto">
-      <div className="flex space-x-2 mb-2">
-        {['html', 'css', 'js'].map((tab) => (
-          <button
-            key={tab}
-            onClick={() => setSelectedTab(tab)}
-            className={`px-3 py-1 rounded ${
-              selectedTab === tab ? 'bg-blue-600' : 'bg-gray-700'
-            }`}
-          >
-            {tab.toUpperCase()}
-          </button>
-        ))}
-      </div>
-      <SyntaxHighlighter
-        language={selectedTab}
-        style={vscDarkPlus}
-        className="h-full"
-      >
-        {artifacts[currentArtifact][selectedTab]}
-      </SyntaxHighlighter>
-    </div>
-  );
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const currentArtifact = artifacts[currentArtifactIndex];
+
+  if (!currentArtifact) {
+    return <div>No artifacts to display</div>;
+  }
 
   return (
-    <div className="w-1/3 flex-shrink-0 border-l border-gray-700 relative bg-gray-800">
+    <div className={`${isFullscreen ? 'fixed inset-0 z-50' : 'w-1/3 flex-shrink-0'} border-l border-gray-700 relative bg-gray-800`}>
       <div className="absolute top-2 right-2 z-10 flex space-x-2">
-        <button onClick={toggleCodeView} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
-          {isCodeView ? <Eye size={20} /> : <Code size={20} />}
-        </button>
         <button onClick={toggleFullscreen} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
           <Maximize2 size={20} />
         </button>
@@ -77,22 +42,22 @@ const PreviewPanel = ({ artifacts, closePreview }) => {
         <button onClick={prevArtifact} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
           <ChevronLeft size={20} />
         </button>
-        <span>Artifact {currentArtifact + 1} of {artifacts.length}</span>
+        <span>Artifact {currentArtifactIndex + 1} of {artifacts.length}</span>
         <button onClick={nextArtifact} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
           <ChevronRight size={20} />
         </button>
       </div>
-      <div className="h-full overflow-auto">
-        {isCodeView ? (
-          renderCodeView()
-        ) : (
-          <SandboxedHtmlPreview
-            ref={iframeRef}
-            htmlContent={artifacts[currentArtifact].html}
-            cssContent={artifacts[currentArtifact].css}
-            jsContent={artifacts[currentArtifact].js}
-          />
-        )}
+      <div className="h-full overflow-auto p-4">
+        <h2 className="text-xl font-bold mb-2">{currentArtifact.title}</h2>
+        <div className="artifact-content">
+          <ArtifactRenderer artifact={currentArtifact} />
+        </div>
+        <div className="mt-4">
+          <h3 className="text-lg font-semibold">Debug Info:</h3>
+          <pre className="bg-gray-900 p-2 rounded overflow-auto">
+            {JSON.stringify(currentArtifact, null, 2)}
+          </pre>
+        </div>
       </div>
     </div>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Sidebar as SidebarIcon } from 'lucide-react';
 import Header from './Header';
 import Sidebar from './Sidebar';
@@ -29,15 +29,23 @@ const LLMChatInterface = () => {
     handleSubmit,
   } = useChat();
 
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'assistant') {
-        const parsedArtifacts = parseArtifacts(lastMessage.content);
+  const processMessageForArtifacts = useCallback((message) => {
+    if (message.role === 'assistant') {
+      const parsedArtifacts = parseArtifacts(message.content);
+      if (parsedArtifacts.length > 0) {
         setArtifacts(parsedArtifacts);
+        setIsPreviewOpen(true);
       }
     }
-  }, [messages]);
+  }, []);
+
+  const onMessageSubmit = useCallback(async (e) => {
+    e.preventDefault();
+    const response = await handleSubmit(e);
+    if (response) {
+      processMessageForArtifacts(response);
+    }
+  }, [handleSubmit, processMessageForArtifacts]);
 
   const toggleSettings = useCallback(() => setIsSettingsOpen(prev => !prev), []);
   const toggleSidebar = useCallback(() => setIsSidebarOpen(prev => !prev), []);
@@ -67,7 +75,7 @@ const LLMChatInterface = () => {
           setInputValue={setInputValue}
           placeholderText={placeholderText}
           isLoading={isLoading}
-          handleSubmit={handleSubmit}
+          handleSubmit={onMessageSubmit}
         />
 
         {isPreviewOpen && artifacts.length > 0 && (
