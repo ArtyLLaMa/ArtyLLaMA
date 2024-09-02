@@ -32,6 +32,7 @@ ArtyLLaMa is in its early stages and under active development. We welcome contri
 - Error handling and loading indicators for a smooth user experience
 - Server-side streaming of AI responses
 - Customizable system messages
+- Concurrent running of frontend and backend servers
 
 ## Prerequisites
 
@@ -65,18 +66,24 @@ Before you begin, ensure you have met the following requirements:
 
 ## Usage
 
-To start the development server:
+To start both the frontend and backend servers concurrently:
+
+```
+npm run dev
+```
+
+This will start the React development server on `http://localhost:3000` and the backend server on `http://localhost:3001`.
+
+To start only the frontend:
 
 ```
 npm start
 ```
 
-The application will be available at `http://localhost:3000`.
-
-To start the backend server:
+To start only the backend:
 
 ```
-node server.js
+npm run server
 ```
 
 ## Project Structure
@@ -100,6 +107,7 @@ src
 ├── index.js
 └── styles
     └── tailwind.css
+server.js
 ```
 
 ## API Integration
@@ -125,11 +133,29 @@ Functionalities include:
 
 ## Contributing
 
-Contributions to ArtyLLaMa are welcome. Please ensure you follow the existing code style and structure when submitting pull requests.
+Contributions to ArtyLLaMa are welcome. Please ensure you follow the existing code style and structure when submitting pull requests. Here are some ways you can contribute:
+
+- Reporting bugs
+- Suggesting enhancements
+- Writing documentation
+- Submitting pull requests
+
+Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduct and the process for submitting pull requests.
+
+## Troubleshooting
+
+If you encounter any issues:
+
+1. Ensure all dependencies are installed: `npm install`
+2. Check that your `.env` file is correctly set up with valid API keys
+3. Make sure Ollama is running if you're using local models
+4. Clear your browser cache and restart the servers
+
+For more detailed troubleshooting, refer to our [Troubleshooting Guide](TROUBLESHOOTING.md).
 
 ## License
 
-This project is licensed under the MIT License - see the `LICENSE` file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
 ## Acknowledgments
 
@@ -138,4 +164,11 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 - Tailwind CSS for styling
 - DOMPurify for HTML sanitization
 - Express.js for the backend server
+- Concurrently for running multiple npm scripts
 - A special shout-out to Dependabot, our tireless digital guardian. While it may not write code, it certainly keeps our dependencies in check with the enthusiasm of a caffeinated squirrel. 🤖🎉
+
+## Support
+
+If you like this project, please give it a ⭐️ on GitHub!
+
+For support, please open an issue on the GitHub repository.
