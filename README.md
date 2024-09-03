@@ -23,6 +23,14 @@ ArtyLLama is a React-based chat interface that integrates with multiple AI provi
 - Customizable system messages
 - Concurrent running of frontend and backend servers
 
+## ArtyLLaMa Artifact Processing System
+
+ArtyLLaMa employs a sophisticated artifact processing system to handle various types of AI-generated content. The following diagram illustrates the flow and processing steps for different artifact types:
+
+![ArtyLLaMa Artifact Processing System](https://raw.githubusercontent.com/kroonen/artyllama/main/docs/artifact-processing-system.svg)
+
+This diagram shows how ArtyLLaMa processes different types of artifacts from the initial LLM output to the final rendering in the user interface, highlighting the specialized handling for each artifact type.
+
 ## Prerequisites
 
 Before you begin, ensure you have met the following requirements:
@@ -100,4 +108,4 @@ For support, please open an issue on the GitHub repository.
 
 ---
 
-Made with ❤️ by the ArtyLLama team
+Made with ❤️ by the ArtyLLama community.
