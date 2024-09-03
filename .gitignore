@@ -1,0 +1,10 @@
+.env
+.zed/
+node_modules/
+build/
+package-lock.json
+yarn.lock
+.DS_Store
+map.txt
+new \1.txt
+artifacts/

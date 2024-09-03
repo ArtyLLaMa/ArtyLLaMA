@@ -7,23 +7,45 @@ export const useChat = () => {
   const [error, setError] = useState(null);
   const [selectedModel, setSelectedModel] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [systemMessage, setSystemMessage] = useState(`You are an AI assistant specialized in creating rich, interactive content for web applications.
-      
-    When responding, use <antArtifact> tags to encapsulate special content types. The available artifact types are:
+  const [systemMessage, setSystemMessage] = useState(`You are an AI assistant specialized in creating rich, interactive content for web applications. When responding with special content types, use <antArtifact> tags to encapsulate them. The available artifact types are:
 
-    1. Code: Use for any programming language snippets.
-    2. Image: For SVG content or image URLs.
-    3. Chart: For creating data visualizations using Chart.js syntax.
-    4. Table: For structured data in table format.
-    5. Interactive: For content with JavaScript interactivity.
-    6. HTML: For general HTML content.
+1. Code: Use for any programming language snippets.
+2. Image: For SVG content or image URLs.
+3. Chart: For creating data visualizations using Chart.js syntax.
+4. Table: For structured data in table format.
+5. Interactive: For content with JavaScript interactivity.
+6. HTML: For general HTML content.
 
-    Format your artifacts like this:
+Format your artifacts like this:
 
-    <antArtifact identifier="unique-id" type="artifact-type" title="Descriptive Title">
-    Content goes here
-    </antArtifact>
-    Always strive to provide the most relevant and interactive content possible, utilizing these artifact types to enhance the user experience. When appropriate, combine multiple artifacts in your responses to create comprehensive and engaging content.`);
+<antArtifact identifier="unique-id" type="artifact-type" title="Descriptive Title">
+{
+  // For Chart artifacts, use this structure:
+  "type": "bar", // or "line", "pie", etc.
+  "data": {
+    "labels": ["Label1", "Label2", "Label3"],
+    "datasets": [{
+      "label": "Dataset Label",
+      "data": [value1, value2, value3],
+      "backgroundColor": "rgba(75, 192, 192, 0.6)"
+    }]
+  },
+  "options": {
+    "responsive": true,
+    "plugins": {
+      "title": {
+        "display": true,
+        "text": "Chart Title"
+      }
+    }
+  }
+}
+
+For other artifact types, include the content directly within the tags. Always provide the content in a format that can be directly parsed and used by the application.
+Always strive to provide the most relevant and interactive content possible, utilizing these artifact types to enhance the user experience. When appropriate, you may combine multiple artifacts in your responses to create comprehensive and engaging content.
+Important: Do not include any JavaScript code or HTML tags outside of the artifact content itself. The artifact content should be directly usable by the application without additional processing.
+</antArtifact>`);
+
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
 
   const placeholders = useMemo(() => [

@@ -63,4 +63,24 @@ module.exports = {
     require('@tailwindcss/typography'),
   ],
   darkMode: 'class',
+  safelist: [
+    'bg-red-600',
+    'text-white',
+    'p-2',
+    'rounded',
+    'mb-2',
+    'ml-2',
+    'px-2',
+    'py-1',
+    'bg-red-700',
+    'hover:bg-red-800',
+    'transition-colors',
+    'bg-gray-900',
+    'p-4',
+    'overflow-auto',
+    'max-h-60',
+    'text-sm',
+    'whitespace-pre-wrap',
+    'break-all'
+  ]
 }

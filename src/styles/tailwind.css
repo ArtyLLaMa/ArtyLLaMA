@@ -25,6 +25,21 @@
   .artifact-panel-open {
     @apply transform translate-x-0;
   }
+
+  .chart-artifact {
+    @apply w-full max-w-2xl mx-auto;
+  }
+
+  .error-message {
+    @apply text-sm font-medium;
+  }
+
+  .raw-content {
+    @apply text-gray-300 whitespace-pre-wrap break-all;
+  }
+  .html-content {
+    @apply w-full max-w-full overflow-x-auto;
+  }
 }
 
 @layer utilities {

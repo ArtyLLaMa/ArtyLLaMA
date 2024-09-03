@@ -108,4 +108,3 @@ export function parseArtifacts(content) {
   
     return artifacts;
   }
-  

@@ -3,8 +3,23 @@ const Anthropic = require('@anthropic-ai/sdk');
 const axios = require('axios');
 const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
-
+const ArtifactManager = require('./src/utils/ArtifactManager');
 dotenv.config();
+
+(async function() {
+  const { default: chalk } = await import('chalk');
+
+// ASCII Art
+  console.log(chalk.blue(`
+/\\ ___/\\
+(  >   <  )
+\\_  ^  _/
+   / - \\ 
+  /  \\  \\
+ / /\\ \\  \\
+(__)  (__)
+`));
+console.log(chalk.cyan('ArtyLLaMa Server Starting...'));
 
 function combineConsecutiveMessages(messages) {
   return messages.reduce((acc, msg, index) => {
@@ -28,6 +43,8 @@ const anthropic = new Anthropic.Anthropic({
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
+
+const artifactManager = new ArtifactManager();
 
 app.get('/api/models', async (req, res) => {
   try {
@@ -100,6 +117,12 @@ app.post('/api/chat', async (req, res) => {
     
         res.write('data: [DONE]\n\n');
         res.end();
+
+        artifactManager.addArtifact({
+          type: 'chat',
+          model: model,
+          content: response.content[0].text
+        });
       } catch (error) {
         console.error('Anthropic API error:', error);
         res.status(500).json({ 
@@ -141,19 +164,26 @@ app.post('/api/chat', async (req, res) => {
         fullContent: fullContent
       })}\n\n`);
       res.end();
+
+      artifactManager.addArtifact({
+        type: 'chat',
+        model: model,
+        content: fullContent
+      });
     } else {
       // Ollama API call
       const ollamaUrl = `${process.env.OLLAMA_API_URL}/api/chat`;
       console.log('Sending request to Ollama:', ollamaUrl);
       console.log('Request payload:', JSON.stringify({ model, messages: combinedMessages, stream: true }));
 
-      const response = await axios.post(ollamaUrl, {
-        model,
-        messages: combinedMessages,
-        stream: true
-      }, {
-        responseType: 'stream'
-      });
+      try {
+        const response = await axios.post(ollamaUrl, {
+          model,
+          messages: combinedMessages,
+          stream: true
+        }, {
+          responseType: 'stream'
+        });
 
       res.writeHead(200, {
         'Content-Type': 'text/event-stream',
@@ -182,6 +212,12 @@ app.post('/api/chat', async (req, res) => {
                 fullContent: fullContent
               })}\n\n`);
               res.end();
+
+              artifactManager.addArtifact({
+                type: 'chat',
+                model: model,
+                  content: fullContent
+              });
             }
           } catch (parseError) {
             console.error('Error parsing Ollama chunk:', parseError);
@@ -197,8 +233,22 @@ app.post('/api/chat', async (req, res) => {
             fullContent: fullContent
           })}\n\n`);
           res.end();
+
+          artifactManager.addArtifact({
+            type: 'chat',
+            model: model,
+            content: fullContent
+          });
         }
       });
+  } catch (error) {
+        console.error('Ollama API error:', error);
+        res.status(500).json({ 
+          error: 'Ollama API error', 
+          message: 'An error occurred while processing your request. Please try again later.',
+          details: error.message 
+});
+      }
     }
   } catch (error) {
     console.error('API error:', error);
@@ -207,4 +257,13 @@ app.post('/api/chat', async (req, res) => {
 });
 
 const PORT = process.env.PORT || 3001;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => {
+  console.log(chalk.green(`Server running on port ${PORT}`));
+});
+
+process.on('exit', () => {
+  console.log(chalk.yellow('Generating session summary...'));
+  artifactManager.generateSessionSummary();
+  console.log(chalk.green('Session summary generated. Goodbye!'));
+});
+})();
