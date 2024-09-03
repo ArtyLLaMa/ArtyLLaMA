@@ -9,3 +9,5 @@ map.txt
 new \1.txt
 artifacts/
 map_bak.txt
+error.log
+combined.log
