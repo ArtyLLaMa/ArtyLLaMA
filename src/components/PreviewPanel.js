@@ -8,8 +8,9 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    console.log('Artifacts in PreviewPanel:', artifacts);
-  }, [artifacts]);
+    // Automatically set the index to the last artifact when a new one is added
+    setCurrentArtifactIndex(artifacts.length - 1);
+  }, [artifacts.length]);
 
   const nextArtifact = () => {
     setCurrentArtifactIndex((prev) => (prev + 1) % artifacts.length);
