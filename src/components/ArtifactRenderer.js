@@ -17,27 +17,35 @@ export const ARTIFACT_TYPES = {
   };
   
   export const ArtifactRenderer = ({ artifact }) => {
-    console.log('ArtifactRenderer received:', artifact); // Debug log
+    console.log('ArtifactRenderer received:', artifact);
   
     const normalizedType = artifact.type.toLowerCase();
     
-    switch (normalizedType) {
-      case ARTIFACT_TYPES.CODE:
-        return <CodeArtifact content={artifact.content} />;
-      case ARTIFACT_TYPES.IMAGE:
-        return <ImageArtifact content={artifact.content} />;
-      case ARTIFACT_TYPES.CHART:
-        return <ChartArtifact content={artifact.content} />;
-      case ARTIFACT_TYPES.TABLE:
-        return <TableArtifact content={artifact.content} />;
-      case ARTIFACT_TYPES.INTERACTIVE:
-        return <InteractiveArtifact content={artifact.content} />;
-      case ARTIFACT_TYPES.HTML:
-        return <HTMLArtifact content={artifact.content} />;
-      default:
-        console.error('Unknown artifact type:', artifact.type);
-        return <div>Unknown artifact type: {artifact.type}</div>;
-    }
+    const renderContent = () => {
+      switch (normalizedType) {
+        case ARTIFACT_TYPES.CODE:
+          return <CodeArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.IMAGE:
+          return <ImageArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.CHART:
+          return <ChartArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.TABLE:
+          return <TableArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.INTERACTIVE:
+          return <InteractiveArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.HTML:
+          return <HTMLArtifact content={artifact.content} />;
+        default:
+          console.error('Unknown artifact type:', artifact.type);
+          return <div>Unknown artifact type: {artifact.type}</div>;
+      }
+    };
+  
+    return (
+      <div className="artifact-renderer w-full h-full">
+        {renderContent()}
+      </div>
+    );
 }
 
 function detectArtifactType(content) {
