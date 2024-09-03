@@ -22,6 +22,7 @@ export const ARTIFACT_TYPES = {
     const normalizedType = artifact.type.toLowerCase();
     
     const renderContent = () => {
+      console.log(`Rendering artifact of type: ${normalizedType}`);
       switch (normalizedType) {
         case ARTIFACT_TYPES.CODE:
           return <CodeArtifact content={artifact.content} />;
@@ -30,6 +31,8 @@ export const ARTIFACT_TYPES = {
         case ARTIFACT_TYPES.CHART:
           return <ChartArtifact content={artifact.content} />;
         case ARTIFACT_TYPES.TABLE:
+        case 'table':
+          console.log('Rendering TableArtifact with content:', artifact.content);
           return <TableArtifact content={artifact.content} />;
         case ARTIFACT_TYPES.INTERACTIVE:
           return <InteractiveArtifact content={artifact.content} />;

@@ -1,21 +1,40 @@
 import React from 'react';
 
 const TableArtifact = ({ content }) => {
+  console.log("TableArtifact received content:", content);
+
+  let parsedContent;
+  try {
+    parsedContent = JSON.parse(content);
+  } catch (error) {
+    console.error("Error parsing table data:", error);
+    return <div>Error: Invalid table data</div>;
+  }
+
+  if (!parsedContent.headers || !parsedContent.data || !Array.isArray(parsedContent.data)) {
+    console.error("Invalid table structure:", parsedContent);
+    return <div>Error: Invalid table structure</div>;
+  }
+
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-300">
+    <div className="overflow-x-auto shadow-md rounded-lg">
+      <table className="min-w-full bg-gray-800 text-gray-200">
         <thead>
-          <tr>
-            {Object.keys(content[0]).map((header, index) => (
-              <th key={index} className="px-4 py-2 bg-gray-100 border-b">{header}</th>
+          <tr className="bg-gray-700">
+            {parsedContent.headers.map((header, index) => (
+              <th key={index} className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider">
+                {header}
+              </th>
             ))}
           </tr>
         </thead>
-        <tbody>
-          {content.map((row, rowIndex) => (
-            <tr key={rowIndex}>
-              {Object.values(row).map((cell, cellIndex) => (
-                <td key={cellIndex} className="px-4 py-2 border-b">{cell}</td>
+        <tbody className="divide-y divide-gray-600">
+          {parsedContent.data.map((row, rowIndex) => (
+            <tr key={rowIndex} className={rowIndex % 2 === 0 ? 'bg-gray-800' : 'bg-gray-750 hover:bg-gray-700'}>
+              {parsedContent.headers.map((header, cellIndex) => (
+                <td key={cellIndex} className="px-6 py-4 whitespace-nowrap text-sm">
+                  {row[header]}
+                </td>
               ))}
             </tr>
           ))}

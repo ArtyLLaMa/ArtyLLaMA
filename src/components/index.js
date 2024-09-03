@@ -10,7 +10,7 @@ import { useChat } from './useChat'; // We'll create this custom hook
 const LLMChatInterface = () => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isPreviewOpen, setIsPreviewOpen] = useState(true);
   const [showCode, setShowCode] = useState(false);
   const [isArtifactOpen, setIsArtifactOpen] = useState(false);
