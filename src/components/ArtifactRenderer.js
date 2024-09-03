@@ -115,4 +115,4 @@ export function parseArtifacts(content) {
     console.log('Parsed artifacts:', artifacts); // Debug log
   
     return artifacts;
-  }
+}

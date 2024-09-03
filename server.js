@@ -10,6 +10,7 @@ dotenv.config();
   const { default: chalk } = await import('chalk');
 
   console.log(chalk.blue(`
+
                     .+%%*:            .*%%*.                    
                    .@@#+@@-          :@@**@@.                   
                    *@%  +@@    ..    %@*  %@#                   
@@ -31,7 +32,7 @@ dotenv.config();
                 .@@*                        +@@.                
                 *@%                          %@*                
                 %@*                          +@%                
-                *%#                          *%#                
+                *%#                          *%#       
                                                                 
 `));
 

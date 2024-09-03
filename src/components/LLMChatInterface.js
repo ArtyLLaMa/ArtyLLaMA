@@ -44,6 +44,7 @@ const LLMChatInterface = () => {
   useEffect(() => {
     // Process initial messages for artifacts
     messages.forEach(processMessageForArtifacts);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Empty dependency array ensures this runs only once on mount
 
   const onMessageSubmit = useCallback(async (e) => {
