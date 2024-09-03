@@ -1,6 +1,6 @@
 # ArtyLLama: AI-Powered Chat Interface for Open-Source LLMs
 
-<img width="1183" alt="image" src="https://github.com/user-attachments/assets/5d6900b2-0abc-456a-8734-9394087b412b">
+<img width="1920" alt="image" src="https://github.com/user-attachments/assets/afa97c17-4357-447f-96a7-60f83e558aaa">
 
 ArtyLLama is a React-based chat interface that integrates with multiple AI providers, including Ollama, OpenAI, and Anthropic, to provide an interactive AI chatbot experience. It features a dynamic UI with real-time message updates, code highlighting, HTML preview capabilities, and artifact rendering, including SVG support.
 
