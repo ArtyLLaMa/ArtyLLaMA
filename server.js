@@ -32,8 +32,8 @@ dotenv.config();
                 .@@*                        +@@.                
                 *@%                          %@*                
                 %@*                          +@%                
-                *%#                          *%#       
-                                                                
+                *%#                          *%#
+
 `));
 
   console.log(chalk.cyan('ArtyLLaMa Server Starting...'));
@@ -105,7 +105,7 @@ dotenv.config();
         
           const response = await anthropic.messages.create({
             model: model,
-            max_tokens: 1000,
+            max_tokens: 4096,
             system: systemMessage ? systemMessage.content : undefined,
             messages: userMessages,
           });
@@ -154,6 +154,7 @@ dotenv.config();
           const stream = await openai.chat.completions.create({
             model: model,
             messages: combinedMessages,
+            max_tokens: 4096,
             stream: true,
           });
 

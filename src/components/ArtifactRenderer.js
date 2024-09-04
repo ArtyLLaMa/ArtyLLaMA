@@ -5,6 +5,7 @@ import ChartArtifact from './artifacts/ChartArtifact';
 import TableArtifact from './artifacts/TableArtifact';
 import InteractiveArtifact from './artifacts/InteractiveArtifact';
 import HTMLArtifact from './artifacts/HTMLArtifact';
+import MermaidArtifact from './artifacts/MermaidArtifact';
 import DOMPurify from 'dompurify';
 
 export const ARTIFACT_TYPES = {
@@ -14,6 +15,7 @@ export const ARTIFACT_TYPES = {
     TABLE: 'table',
     INTERACTIVE: 'interactive',
     HTML: 'html',
+    MERMAID: 'mermaid',
   };
   
   export const ArtifactRenderer = ({ artifact }) => {
@@ -38,6 +40,8 @@ export const ARTIFACT_TYPES = {
           return <InteractiveArtifact content={artifact.content} />;
         case ARTIFACT_TYPES.HTML:
           return <HTMLArtifact content={artifact.content} />;
+        case ARTIFACT_TYPES.MERMAID:
+          return <MermaidArtifact content={artifact.content} />;
         default:
           console.error('Unknown artifact type:', artifact.type);
           return <div>Unknown artifact type: {artifact.type}</div>;
@@ -64,6 +68,8 @@ function detectArtifactType(content) {
     return ARTIFACT_TYPES.INTERACTIVE;
   } else if (content.includes('<html') || content.includes('<body')) {
     return ARTIFACT_TYPES.HTML;
+  } else if (content.includes('graph LR') || content.includes('graph TD')) {
+    return ARTIFACT_TYPES.MERMAID;
   }
   return ARTIFACT_TYPES.HTML; // Default to HTML if no specific type is detected
 }
@@ -79,6 +85,9 @@ function sanitizeContent(content, type) {
     if (type === ARTIFACT_TYPES.IMAGE && content.trim().startsWith('<svg')) {
       // For SVG, return as-is to be sanitized in the ImageArtifact component
       return content;
+    }
+    if (type === ARTIFACT_TYPES.MERMAID) {
+      return content; // No need to sanitize Mermaid content
     }
     return content; // For other types, return as-is
   }

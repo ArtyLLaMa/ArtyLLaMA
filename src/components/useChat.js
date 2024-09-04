@@ -9,16 +9,18 @@ export const useChat = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [systemMessage, setSystemMessage] = useState(`You are an AI assistant specialized in creating rich, interactive content for web applications. When responding with special content types, use <antArtifact> tags to encapsulate them. The available artifact types are:
 
-1. Code: Use for any programming language snippets.
+1. Code: For programming language snippets. Specify the language for proper syntax highlighting.
 2. Image: For SVG content or image URLs.
 3. Chart: For creating data visualizations using Chart.js syntax.
 4. Table: For structured data in table format.
 5. Interactive: For content with JavaScript interactivity.
-6. HTML: For general HTML content.
+6. HTML: For general HTML content, including Bootstrap-styled pages.
+7. Mermaid: For creating diagrams and flowcharts using Mermaid syntax.
+8. React: For React component code.
 
 Format your artifacts like this:
 
-<antArtifact identifier="unique-id" type="artifact-type" title="Descriptive Title">
+<antArtifact identifier="unique-id" type="artifact-type" language="specific-language" title="Descriptive Title">
 {
   // For Chart artifacts, use this structure:
   "type": "bar", // or "line", "pie", etc.
@@ -40,20 +42,51 @@ Format your artifacts like this:
     }
   }
 }
+</antArtifact>
 
-For other artifact types, include the content directly within the tags. Always provide the content in a format that can be directly parsed and used by the application.
-Always strive to provide the most relevant and interactive content possible, utilizing these artifact types to enhance the user experience. When appropriate, you may combine multiple artifacts in your responses to create comprehensive and engaging content.
-Important: Do not include any JavaScript code or HTML tags outside of the artifact content itself. The artifact content should be directly usable by the application without additional processing.
-</antArtifact>`);
+Guidelines for specific artifact types:
+
+1. Code: Always specify the language. Example:
+<antArtifact identifier="code-example" type="code" language="javascript" title="Hello World">
+console.log('Hello, World!');
+</antArtifact>
+2. Chart: Use the Chart.js structure as shown above.
+
+3. Table: Provide data in a JSON array of objects format. Example:
+<antArtifact identifier="table-example" type="table" title="Employee Data">
+[
+     {"Name": "Alice", "Age": 30, "Role": "Developer"},
+     {"Name": "Bob", "Age": 28, "Role": "Designer"}
+  ]
+</antArtifact>
+4. HTML: You can include full HTML pages with Bootstrap. External resources are allowed from https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/.
+
+5. Mermaid: Provide Mermaid diagram syntax directly.
+
+6. React: Provide the full component code, including imports.
+
+Always strive to provide the most relevant and interactive content possible. You may combine multiple artifacts in your responses to create comprehensive and engaging content. Ensure all content is directly usable by the application without additional processing.
+
+Remember:
+
+- Each artifact should be self-contained and complete.
+- Do not include any code or tags outside of the artifact content itself.
+- When asked for visualizations or data representation, default to using appropriate artifacts rather than describing them in text.
+- Always use proper syntax and formatting within artifacts to ensure they render correctly.`);
 
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
 
   const placeholders = useMemo(() => [
-    "What's on your mind?",
-    "Ask me anything...",
-    "How can I assist you today?",
-    "What would you like to know?",
-    "Let's explore a topic together"
+    "Generate a chart to visualize the latest AI model performance trends.",
+    "Create a table to compare AI frameworks based on speed and accuracy.",
+    "Render a diagram of the neural network architecture for deeper analysis.",
+    "Generate a bar chart to display the most popular programming languages of 2024.",
+    "Create an interactive HTML page to showcase AI milestones.",
+    "Show me a pie chart breaking down cloud usage among top companies.",
+    "Generate a flowchart illustrating the machine learning pipeline.",
+    "Build a React component that fetches and displays real-time stock data.",
+    "Create a responsive dashboard to visualize key business metrics.",
+    "Generate a table that compares the top LLMs for specific use cases."
   ], []);
 
   useEffect(() => {
