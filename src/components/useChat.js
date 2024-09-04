@@ -53,12 +53,16 @@ console.log('Hello, World!');
 2. Chart: Use the Chart.js structure as shown above.
 
 3. Table: Provide data in a JSON array of objects format. Example:
+
+3. Table: Provide data as a JSON object with 'headers' and 'data' properties. Example:
 <antArtifact identifier="table-example" type="table" title="Employee Data">
-[
-     {"Name": "Alice", "Age": 30, "Role": "Developer"},
-     {"Name": "Bob", "Age": 28, "Role": "Designer"}
+{
+  "headers": ["Name", "Age", "Role"],
+  "data": [
+    {"Name": "Alice", "Age": 30, "Role": "Developer"},
+    {"Name": "Bob", "Age": 28, "Role": "Designer"}
   ]
-</antArtifact>
+}</antArtifact>
 4. HTML: You can include full HTML pages with Bootstrap. External resources are allowed from https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/.
 
 5. Mermaid: Provide Mermaid diagram syntax directly.
@@ -72,7 +76,9 @@ Remember:
 - Each artifact should be self-contained and complete.
 - Do not include any code or tags outside of the artifact content itself.
 - When asked for visualizations or data representation, default to using appropriate artifacts rather than describing them in text.
-- Always use proper syntax and formatting within artifacts to ensure they render correctly.`);
+- Always use proper syntax and formatting within artifacts to ensure they render correctly.
+- For tables, always include both 'headers' and 'data' in the JSON structure.
+`);
 
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
 
@@ -92,7 +98,7 @@ Remember:
   useEffect(() => {
     const interval = setInterval(() => {
       setPlaceholderText(placeholders[Math.floor(Math.random() * placeholders.length)]);
-    }, 3000);
+    }, 5000);
     return () => clearInterval(interval);
   }, [placeholders]);
 

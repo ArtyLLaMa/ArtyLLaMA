@@ -3,22 +3,31 @@ import mermaid from 'mermaid';
 
 function MermaidDiagram({ content }) {
   const diagramRef = useRef(null);
+  const [svg, setSvg] = useState('');
   const [error, setError] = useState(null);
   const [showRawContent, setShowRawContent] = useState(false);
 
   useEffect(() => {
-    if (diagramRef.current) {
+    mermaid.initialize({ 
+      startOnLoad: true,
+      theme: 'dark',
+      securityLevel: 'loose',
+      fontFamily: 'monospace'
+    });
+
+    const renderDiagram = async () => {
       try {
-        // Initialize Mermaid
-        mermaid.initialize({ startOnLoad: true });
-        
-        // Render the diagram
-        mermaid.contentLoaded();
-      } catch (diagramError) {
-        console.error("Error rendering Mermaid diagram:", diagramError);
-        setError("Failed to render the diagram. Please try again with valid Mermaid syntax.");
+        const { svg } = await mermaid.render('mermaid-diagram', content);
+        setSvg(svg);
+        setError(null);
+      } catch (err) {
+        console.error("Error rendering Mermaid diagram:", err);
+        setError("Failed to render the diagram. Please check the Mermaid syntax.");
+        setSvg('');
       }
-    }
+    };
+
+    renderDiagram();
   }, [content]);
 
   return (
@@ -36,13 +45,15 @@ function MermaidDiagram({ content }) {
       )}
       {showRawContent && (
         <pre className="raw-content bg-gray-900 p-4 rounded overflow-auto max-h-60 mb-2 text-sm">
-          {typeof content === 'string' ? content : JSON.stringify(content, null, 2)}
+          {content}
         </pre>
       )}
       {!error && (
-        <div ref={diagramRef} className="mermaid">
-          {content}
-        </div>
+        <div 
+          ref={diagramRef}
+          className="mermaid-svg-container"
+          dangerouslySetInnerHTML={{ __html: svg }}
+        />
       )}
     </div>
   );

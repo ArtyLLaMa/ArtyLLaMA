@@ -97,6 +97,23 @@
   .expanded-modal-body {
     @apply flex-grow overflow-auto p-4;
   }
+
+  .mermaid-diagram {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .mermaid-svg-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+  }
+  
+  .mermaid-svg-container svg {
+    max-width: 100%;
+    height: auto;
+  }
 }
 
 @layer utilities {
