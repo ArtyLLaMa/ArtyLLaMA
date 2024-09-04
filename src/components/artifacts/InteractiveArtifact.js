@@ -1,49 +1,78 @@
 import React, { useEffect, useRef, useState } from 'react';
+import DOMPurify from 'dompurify';
 
 const InteractiveArtifact = ({ content }) => {
   const containerRef = useRef(null);
   const [error, setError] = useState(null);
+  const [count, setCount] = useState(0);
 
   useEffect(() => {
     const currentContainer = containerRef.current;
 
     if (currentContainer) {
-      // Clear previous content
-      currentContainer.innerHTML = '';
-
       try {
-        // Create a sandboxed environment
-        const sandbox = {
-          console: {
-            log: (...args) => console.log('Sandbox:', ...args),
-            error: (...args) => console.error('Sandbox:', ...args),
-            warn: (...args) => console.warn('Sandbox:', ...args),
-          },
-          container: currentContainer,
-        };
+        // Sanitize the HTML content
+        const sanitizedContent = DOMPurify.sanitize(content, {
+          ADD_TAGS: ['script'],
+          ADD_ATTR: ['onclick'],
+        });
 
-        // Wrap the content in an IIFE and provide the sandbox
-        const wrappedContent = `
-          (function(sandbox) {
-            try {
-              ${content}
-            } catch (e) {
-              sandbox.console.error('Error in interactive content:', e);
-              throw e;
-            }
-          })(this);
-        `;
+        // Set the sanitized HTML content
+        currentContainer.innerHTML = sanitizedContent;
 
-        // Create a new script element
-        const script = document.createElement('script');
-        script.text = wrappedContent;
+        // Define fallback functions
+        const fallbackIncrement = () => setCount(prevCount => prevCount + 1);
+        const fallbackDecrement = () => setCount(prevCount => prevCount - 1);
 
-        // Append the script to the container
-        currentContainer.appendChild(script);
+        // Get all buttons
+        const buttons = currentContainer.getElementsByTagName('button');
+        
+        // Add click event listeners to buttons
+        Array.from(buttons).forEach(button => {
+          if (button.textContent.toLowerCase().includes('increment')) {
+            button.onclick = () => {
+              if (typeof window.increment === 'function') {
+                window.increment();
+              } else {
+                fallbackIncrement();
+              }
+            };
+          } else if (button.textContent.toLowerCase().includes('decrement')) {
+            button.onclick = () => {
+              if (typeof window.decrement === 'function') {
+                window.decrement();
+              } else {
+                fallbackDecrement();
+              }
+            };
+          }
+        });
+
+        // Execute scripts manually
+        const scripts = currentContainer.getElementsByTagName('script');
+        Array.from(scripts).forEach(script => {
+          const newScript = document.createElement('script');
+          Array.from(script.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+          newScript.appendChild(document.createTextNode(script.innerHTML));
+          script.parentNode.replaceChild(newScript, script);
+        });
+
+        // Update display if needed
+        const displayElement = currentContainer.getElementById('display');
+        if (displayElement) {
+          const updateDisplay = () => {
+            displayElement.innerText = count;
+          };
+          updateDisplay();
+          setCount(prevCount => {
+            updateDisplay();
+            return prevCount;
+          });
+        }
 
         setError(null);
       } catch (e) {
-        console.error('Error executing interactive content:', e);
+        console.error('Error in interactive content:', e);
         setError(`Error: ${e.message}`);
       }
     }
@@ -54,7 +83,7 @@ const InteractiveArtifact = ({ content }) => {
         currentContainer.innerHTML = '';
       }
     };
-  }, [content]);
+  }, [content, count]);
 
   return (
     <div className="interactive-artifact">
