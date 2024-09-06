@@ -6,6 +6,9 @@ const { OpenAI } = require('openai');
 const ArtifactManager = require('./src/utils/ArtifactManager');
 const fs = require('fs').promises;
 const path = require('path');
+const swaggerUi = require('swagger-ui-express');
+const swaggerJsdoc = require('swagger-jsdoc');
+
 const USER_PREFERENCES_FILE = path.join(__dirname, 'user_preferences.json');
 
 dotenv.config();
@@ -14,7 +17,6 @@ dotenv.config();
   const { default: chalk } = await import('chalk');
 
   console.log(chalk.blue(`
-
                     .+%%*:            .*%%*.                    
                    .@@#+@@-          :@@**@@.                   
                    *@%  +@@    ..    %@*  %@#                   
@@ -37,8 +39,9 @@ dotenv.config();
                 *@%                          %@*                
                 %@*                          +@%                
                 *%#                          *%#
-
-`));
+                     Welcome to ArtyLLaMa!
+  Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
+  `));
 
   console.log(chalk.cyan('ArtyLLaMa Server Starting...'));
 
@@ -67,6 +70,52 @@ dotenv.config();
 
   const artifactManager = new ArtifactManager();
 
+  // Swagger definition
+  const swaggerOptions = {
+    definition: {
+      openapi: '3.0.0',
+      info: {
+        title: 'ArtyLLaMa API',
+        version: '1.0.0',
+        description: 'API for ArtyLLaMa, an AI-powered chat interface for interacting with open-source language models',
+      },
+      servers: [
+        {
+          url: `http://localhost:${process.env.PORT || 3001}`,
+          description: 'Development server',
+        },
+      ],
+    },
+    apis: ['./server.js'], // Path to the API docs
+  };
+
+  const swaggerSpec = swaggerJsdoc(swaggerOptions);
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+
+  /**
+   * @swagger
+   * /api/models:
+   *   get:
+   *     summary: Retrieve available AI models
+   *     description: Fetches a list of available AI models from various providers
+   *     responses:
+   *       200:
+   *         description: Successful response
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 models:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       name:
+   *                         type: string
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/models', async (req, res) => {
     try {
       // Fetch Ollama models
@@ -91,6 +140,45 @@ dotenv.config();
     }
   });
 
+  /**
+   * @swagger
+   * /api/chat:
+   *   post:
+   *     summary: Send a chat message
+   *     description: Send a message to the selected AI model and receive a response
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - model
+   *               - messages
+   *             properties:
+   *               model:
+   *                 type: string
+   *               messages:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     role:
+   *                       type: string
+   *                     content:
+   *                       type: string
+   *     responses:
+   *       200:
+   *         description: Successful response
+   *         content:
+   *           text/event-stream:
+   *             schema:
+   *               type: string
+   *       400:
+   *         description: Bad request
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/chat', async (req, res) => {
     const { model, messages } = req.body;
 
@@ -287,6 +375,22 @@ dotenv.config();
     }
   });
 
+  /**
+   * @swagger
+   * /api/user-preferences:
+   *   get:
+   *     summary: Get user preferences
+   *     description: Retrieves the user preferences from the server
+   *     responses:
+   *       200:
+   *         description: Successful response
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *       500:
+   *         description: Server error
+   */
   app.get('/api/user-preferences', async (req, res) => {
     try {
       const data = await fs.readFile(USER_PREFERENCES_FILE, 'utf8');
@@ -302,6 +406,31 @@ dotenv.config();
     }
   });
   
+  /**
+   * @swagger
+   * /api/user-preferences:
+   *   post:
+   *     summary: Save user preferences
+   *     description: Saves the user preferences to the server
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *     responses:
+   *       200:
+   *         description: Successful response
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *       500:
+   *         description: Server error
+   */
   app.post('/api/user-preferences', async (req, res) => {
     try {
       await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(req.body, null, 2));
@@ -315,11 +444,34 @@ dotenv.config();
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => {
     console.log(chalk.green(`Server running on port ${PORT}`));
+    console.log(chalk.blue(`Swagger UI available at http://localhost:${PORT}/api-docs`));
+  });
+
+  // Error handling middleware
+  app.use((err, req, res, next) => {
+    console.error(chalk.red('Error:'), err);
+    res.status(500).json({ 
+      error: 'Internal Server Error', 
+      message: 'An unexpected error occurred. Please try again later.'
+    });
   });
 
   process.on('exit', () => {
     console.log(chalk.yellow('Generating session summary...'));
     artifactManager.generateSessionSummary();
     console.log(chalk.green('Session summary generated. Goodbye!'));
+  });
+
+  // Handle unhandled promise rejections
+  process.on('unhandledRejection', (reason, promise) => {
+    console.error(chalk.red('Unhandled Rejection at:'), promise, chalk.red('reason:'), reason);
+    // Application specific logging, throwing an error, or other logic here
+  });
+
+  // Handle uncaught exceptions
+  process.on('uncaughtException', (error) => {
+    console.error(chalk.red('Uncaught Exception:'), error);
+    // Application specific logging, throwing an error, or other logic here
+    process.exit(1); // Exit with failure
   });
 })();
