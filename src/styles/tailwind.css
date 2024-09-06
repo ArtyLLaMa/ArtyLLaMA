@@ -3,6 +3,12 @@
 @import 'tailwindcss/utilities';
 
 /* Custom styles */
+@layer base {
+  body {
+    @apply bg-gray-900 text-gray-300;
+  }
+}
+
 @layer components {
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
@@ -37,11 +43,11 @@
   .chart-artifact {
     @apply w-full max-w-2xl mx-auto;
   }
-
+  
   .error-message {
     @apply text-sm font-medium text-red-500 bg-red-100 border border-red-400 rounded p-2 mb-2;
   }
-
+  
   .raw-content {
     @apply text-gray-300 whitespace-pre-wrap break-all bg-gray-700 p-2 rounded;
   }
@@ -49,17 +55,17 @@
   .html-content {
     @apply w-full max-w-full overflow-x-auto bg-white text-black p-4 rounded;
   }
-  
+
   .artifact-preview-container {
     @apply max-w-full max-h-[calc(100vh-200px)] overflow-auto border border-gray-700 rounded-lg m-2 p-4;
   }
-  
+
   .ui-buttons {
     @apply fixed top-2 right-2 z-50 flex space-x-2;
   }
 
   .sidebar {
-    @apply flex-shrink-0 bg-gray-800 border-r border-gray-700 overflow-y-auto transition-all duration-300 ease-in-out;
+    @apply flex-shrink-0 bg-gray-900 border-r border-gray-800 overflow-y-auto transition-all duration-300 ease-in-out;
   }
 
   .sidebar-open {
@@ -71,21 +77,29 @@
   }
 
   .chat-area {
-    @apply flex-grow flex flex-col overflow-hidden;
+    @apply flex-grow flex flex-col overflow-hidden bg-gray-900;
   }
 
   .chat-messages {
     @apply flex-grow overflow-y-auto p-4 space-y-4;
   }
 
+  .chat-input-container {
+    @apply flex items-center bg-gray-800 bg-opacity-50 rounded-lg overflow-hidden mx-auto max-w-3xl my-4 px-4 py-2 shadow-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-opacity-50 transition-all duration-300;
+  }
+
   .chat-input {
-    @apply p-4 border-t border-gray-700;
+    @apply flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm;
+  }
+
+  .chat-submit-button {
+    @apply p-2 text-gray-400 hover:text-white transition-colors focus:outline-none;
   }
 
   .expanded-modal {
     @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
   }
-
+  
   .expanded-modal-content {
     @apply bg-gray-800 w-11/12 h-5/6 rounded-lg shadow-xl relative flex flex-col;
   }
@@ -93,27 +107,84 @@
   .expanded-modal-header {
     @apply flex justify-between items-center p-4 border-b border-gray-700;
   }
-
+  
   .expanded-modal-body {
     @apply flex-grow overflow-auto p-4;
   }
-
   .mermaid-diagram {
     width: 100%;
     overflow-x: auto;
   }
-  
+
   .mermaid-svg-container {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 200px;
   }
-  
+
   .mermaid-svg-container svg {
     max-width: 100%;
     height: auto;
   }
+
+  .chat-suggestion-button {
+    @apply flex flex-col items-center justify-center space-y-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg p-4 transition-colors w-32 h-32;
+  }
+
+  .chat-suggestion-icon {
+    @apply text-2xl;
+  }
+
+  .chat-suggestion-text {
+    @apply text-xs text-center;
+}
+
+  /* New switch styles */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+}
+
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #4B5563;
+    transition: .4s;
+    border-radius: 34px;
+  }
+
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+  input:checked + .slider {
+    background-color: #10B981;
+}
+
+  input:checked + .slider:before {
+    transform: translateX(26px);
+}
 }
 
 @layer utilities {
@@ -127,5 +198,9 @@
 
   .transition-width {
     transition-property: width;
+  }
+
+  .content-center {
+    @apply flex flex-col justify-center items-center h-full;
   }
 }

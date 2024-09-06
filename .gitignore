@@ -13,3 +13,4 @@ combined.log
 /artifacts
 !components/artifacts
 !components/artifacts/*
+user_preferences.json

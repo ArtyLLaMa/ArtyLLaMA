@@ -4,6 +4,10 @@ const axios = require('axios');
 const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
 const ArtifactManager = require('./src/utils/ArtifactManager');
+const fs = require('fs').promises;
+const path = require('path');
+const USER_PREFERENCES_FILE = path.join(__dirname, 'user_preferences.json');
+
 dotenv.config();
 
 (async function() {
@@ -280,6 +284,31 @@ dotenv.config();
     } catch (error) {
       console.error('API error:', error);
       res.status(500).json({ error: 'Failed to call API', details: error.message });
+    }
+  });
+
+  app.get('/api/user-preferences', async (req, res) => {
+    try {
+      const data = await fs.readFile(USER_PREFERENCES_FILE, 'utf8');
+      res.json(JSON.parse(data));
+    } catch (error) {
+      if (error.code === 'ENOENT') {
+        // File doesn't exist, return empty preferences
+        res.json({});
+      } else {
+        console.error('Error reading user preferences:', error);
+        res.status(500).json({ error: 'Failed to read user preferences' });
+      }
+    }
+  });
+  
+  app.post('/api/user-preferences', async (req, res) => {
+    try {
+      await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(req.body, null, 2));
+      res.json({ message: 'User preferences saved successfully' });
+    } catch (error) {
+      console.error('Error saving user preferences:', error);
+      res.status(500).json({ error: 'Failed to save user preferences' });
     }
   });
 
