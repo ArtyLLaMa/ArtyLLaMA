@@ -54,8 +54,10 @@ export function parseArtifacts(content) {
   const artifactRegex = /<antArtifact[^>]*>([\s\S]*?)<\/antArtifact>/gi;
   const artifacts = [];
   let match;
+  let totalArtifacts = 0;
 
   while ((match = artifactRegex.exec(content)) !== null) {
+    totalArtifacts++;
     const fullMatch = match[0];
     const artifactContent = match[1];
 
@@ -78,10 +80,9 @@ export function parseArtifacts(content) {
       type: detectedType,
       language,
       content: sanitizedContent,
+      index: totalArtifacts,
     });
   }
 
-  return artifacts;
+  return { artifacts, totalArtifacts };
 }
-
-//export { ARTIFACT_TYPES };

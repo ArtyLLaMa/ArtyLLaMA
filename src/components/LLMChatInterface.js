@@ -13,6 +13,7 @@ const LLMChatInterface = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [artifacts, setArtifacts] = useState([]);
   const [expandedArtifact, setExpandedArtifact] = useState(null);
+  const [totalArtifacts, setTotalArtifacts] = useState(0);
 
   const {
     messages,
@@ -32,15 +33,20 @@ const LLMChatInterface = () => {
 
   const processMessageForArtifacts = useCallback((message) => {
     if (message && message.role === 'assistant') {
-      const parsedArtifacts = parseArtifacts(message.content);
+      const { artifacts: parsedArtifacts, totalArtifacts: messageTotalArtifacts } = parseArtifacts(message.content);
       if (parsedArtifacts.length > 0) {
         setArtifacts(prevArtifacts => [...prevArtifacts, ...parsedArtifacts]);
+        setTotalArtifacts(prevTotal => prevTotal + messageTotalArtifacts);
         setIsPreviewOpen(true);
       }
+      return messageTotalArtifacts;
     }
+    return 0;
   }, []);
 
   useEffect(() => {
+    setArtifacts([]);
+    setTotalArtifacts(0);
     messages.forEach(processMessageForArtifacts);
   }, [messages, processMessageForArtifacts]);
 
@@ -84,6 +90,7 @@ const LLMChatInterface = () => {
             artifacts={artifacts}
             closePreview={togglePreview}
             expandArtifact={setExpandedArtifact}
+            totalArtifacts={totalArtifacts}
           />
         )}
       </div>
@@ -108,6 +115,7 @@ const LLMChatInterface = () => {
         <ExpandedPreviewModal
           artifact={expandedArtifact}
           toggleExpand={() => setExpandedArtifact(null)}
+          totalArtifacts={totalArtifacts}
         />
       )}
     </div>
