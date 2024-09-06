@@ -1,12 +1,21 @@
 import React, { useRef, useEffect } from 'react';
 import { Send, Lightbulb, Scroll, BookOpen, Coffee } from 'lucide-react';
 
-const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText, isLoading, handleSubmit }) => {
+const ChatArea = ({ 
+  messages, 
+  streamingMessage,
+  error, 
+  inputValue, 
+  setInputValue, 
+  placeholderText, 
+  isLoading, 
+  handleSubmit 
+}) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  }, [messages, streamingMessage]);
 
   const suggestions = [
     { icon: <Lightbulb size={20} />, text: "Write a story in my favorite genre" },
@@ -19,7 +28,7 @@ const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText,
     <div className="flex-grow flex flex-col overflow-hidden bg-gray-900">
       <div className="flex-grow overflow-y-auto p-4 space-y-4">
         {error && <div className="bg-red-500 text-white p-2 rounded mb-4">{error}</div>}
-        {messages.length === 0 && (
+        {messages.length === 0 && !streamingMessage && (
           <div className="flex flex-col justify-center items-center h-full">
             <div className="grid grid-cols-2 gap-4 max-w-md">
               {suggestions.map((suggestion, index) => (
@@ -29,12 +38,11 @@ const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText,
           </div>
         )}
         {messages.map((message, index) => (
-          <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-3/4 p-3 rounded-lg ${message.role === 'user' ? 'bg-blue-600 text-white' : 'bg-gray-700 text-gray-300'}`}>
-              {message.content}
-            </div>
-          </div>
+          <MessageBubble key={index} message={message} />
         ))}
+        {streamingMessage && (
+          <MessageBubble message={streamingMessage} isStreaming={true} />
+        )}
         <div ref={messagesEndRef} />
       </div>
 
@@ -64,6 +72,20 @@ const ChatArea = ({ messages, error, inputValue, setInputValue, placeholderText,
     </div>
   );
 };
+
+const MessageBubble = ({ message, isStreaming = false }) => (
+  <div className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}>
+    <div className={`max-w-3/4 p-3 rounded-lg ${
+      message.role === 'user' 
+        ? 'bg-blue-600 text-white' 
+        : isStreaming
+        ? 'bg-gray-700 text-gray-300 animate-pulse'
+        : 'bg-gray-700 text-gray-300'
+    }`}>
+      {message.content}
+    </div>
+  </div>
+);
 
 const SuggestionButton = ({ icon, text }) => (
   <button className="flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg p-3 transition-colors w-full h-32">

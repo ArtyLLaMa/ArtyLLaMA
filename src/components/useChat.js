@@ -81,6 +81,7 @@ Remember:
 `);
 
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
+  const [streamingMessage, setStreamingMessage] = useState(null);
 
   const placeholders = useMemo(() => [
     "Generate a chart to visualize the latest AI model performance trends.",
@@ -109,16 +110,16 @@ Remember:
       setError('Please select a model before sending a message.');
       return;
     }
-
+  
     const userMessage = { role: 'user', content: inputValue.trim(), timestamp: new Date() };
     setMessages(prevMessages => [...prevMessages, userMessage]);
     setInputValue('');
     setIsLoading(true);
     setError(null);
-
+  
     const startTime = Date.now();
     let totalTokens = 0;
-
+  
     try {
       const response = await fetch('/api/chat', {
         method: 'POST',
@@ -128,16 +129,18 @@ Remember:
           messages: [{ role: 'system', content: systemMessage }, ...messages, userMessage],
         }),
       });
-
+  
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || `API responded with ${response.status}`);
       }
-
+  
       const reader = response.body.getReader();
       const decoder = new TextDecoder();
       let aiMessage = { role: 'assistant', content: '', timestamp: new Date() };
-
+  
+      setStreamingMessage(aiMessage);
+  
       while (true) {
         const { value, done } = await reader.read();
         if (done) break;
@@ -149,29 +152,37 @@ Remember:
           if (line.startsWith('data: ')) {
             const data = line.slice(5).trim();
             
-            if (data === '[DONE]') continue;
+            if (data === '[DONE]') {
+              // End of stream, but don't add this to the message content
+              continue;
+            }
             
             try {
               const parsedData = JSON.parse(data);
               if (parsedData.content) {
+                // Update the aiMessage content token by token
                 aiMessage.content += parsedData.content;
                 aiMessage.provider = parsedData.provider;
                 
-                setMessages(prevMessages => {
-                  const updatedMessages = [...prevMessages];
-                  const lastMessage = updatedMessages[updatedMessages.length - 1];
-                  if (lastMessage.role === 'assistant') {
-                    updatedMessages[updatedMessages.length - 1] = { ...aiMessage };
-                  } else {
-                    updatedMessages.push({ ...aiMessage });
-                  }
-                  return updatedMessages;
+                setStreamingMessage({ ...aiMessage });
+  
+                totalTokens += 1; // Increment token count
+                
+                // Update stats in real-time
+                const currentTime = Date.now();
+                const elapsedTime = (currentTime - startTime) / 1000;
+                setStats({
+                  tokensPerSecond: Math.round(totalTokens / elapsedTime),
+                  totalTokens: totalTokens
                 });
-
-                totalTokens += 1;
+                
+                // Introduce a small delay to simulate token-by-token streaming
+                await new Promise(resolve => setTimeout(resolve, 10));
               }
-              if (parsedData.fullContent) {
-                totalTokens = parsedData.fullContent.split(' ').length;
+              if (parsedData.done) {
+                // This is the final message
+                setStreamingMessage(null);
+                break;
               }
             } catch (parseError) {
               console.error('Error parsing JSON:', parseError);
@@ -179,27 +190,32 @@ Remember:
           }
         }
       }
-
+  
+      // Add the final message to the messages array
+      setMessages(prevMessages => [...prevMessages, aiMessage]);
+  
       const endTime = Date.now();
       const duration = (endTime - startTime) / 1000;
       setStats({
         tokensPerSecond: Math.round(totalTokens / duration),
         totalTokens: totalTokens
       });
-
+  
       return aiMessage;
-
+  
     } catch (error) {
       console.error('Detailed error:', error);
       setError(`Failed to get a response from the AI. ${error.message}`);
       setMessages(prevMessages => [...prevMessages, { role: 'error', content: error.message, timestamp: new Date() }]);
     } finally {
       setIsLoading(false);
+      setStreamingMessage(null);
     }
   }, [inputValue, messages, selectedModel, systemMessage]);
-
+  
   return {
     messages,
+    streamingMessage,
     inputValue,
     setInputValue,
     placeholderText,
@@ -212,4 +228,4 @@ Remember:
     stats,
     handleSubmit,
   };
-};
+}

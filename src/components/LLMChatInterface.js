@@ -16,6 +16,7 @@ const LLMChatInterface = () => {
 
   const {
     messages,
+    streamingMessage,
     inputValue,
     setInputValue,
     placeholderText,
@@ -30,7 +31,7 @@ const LLMChatInterface = () => {
   } = useChat();
 
   const processMessageForArtifacts = useCallback((message) => {
-    if (message.role === 'assistant') {
+    if (message && message.role === 'assistant') {
       const parsedArtifacts = parseArtifacts(message.content);
       if (parsedArtifacts.length > 0) {
         setArtifacts(prevArtifacts => [...prevArtifacts, ...parsedArtifacts]);
@@ -43,13 +44,16 @@ const LLMChatInterface = () => {
     messages.forEach(processMessageForArtifacts);
   }, [messages, processMessageForArtifacts]);
 
+  useEffect(() => {
+    if (streamingMessage) {
+      processMessageForArtifacts(streamingMessage);
+    }
+  }, [streamingMessage, processMessageForArtifacts]);
+
   const onMessageSubmit = useCallback(async (e) => {
     e.preventDefault();
-    const response = await handleSubmit(e);
-    if (response) {
-      processMessageForArtifacts(response);
-    }
-  }, [handleSubmit, processMessageForArtifacts]);
+    await handleSubmit(e);
+  }, [handleSubmit]);
 
   const toggleSettings = useCallback(() => setIsSettingsOpen(prev => !prev), []);
   const togglePreview = useCallback(() => setIsPreviewOpen(prev => !prev), []);
@@ -66,6 +70,7 @@ const LLMChatInterface = () => {
         <div className="flex-grow flex flex-col">
           <ChatArea
             messages={messages}
+            streamingMessage={streamingMessage}
             error={error}
             inputValue={inputValue}
             setInputValue={setInputValue}
