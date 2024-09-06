@@ -5,6 +5,7 @@ const dotenv = require('dotenv');
 const { OpenAI } = require('openai');
 const ArtifactManager = require('./src/utils/ArtifactManager');
 const fs = require('fs').promises;
+const { exec } = require('child_process');
 const path = require('path');
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
@@ -438,6 +439,62 @@ dotenv.config();
     } catch (error) {
       console.error('Error saving user preferences:', error);
       res.status(500).json({ error: 'Failed to save user preferences' });
+    }
+  });
+
+    // Function to execute the update script
+  function executeUpdateScript() {
+    return new Promise((resolve, reject) => {
+      const scriptPath = path.join(__dirname, 'update_ollama_models.sh');
+      exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing update script: ${error}`);
+          reject(error);
+          return;
+        }
+        if (stderr) {
+          console.error(`Script stderr: ${stderr}`);
+        }
+        console.log(`Script output: ${stdout}`);
+        resolve(stdout);
+      });
+    });
+  }
+
+  /**
+   * @swagger
+   * /api/update-ollama-models:
+   *   post:
+   *     summary: Update Ollama models
+   *     description: Triggers the update script for Ollama models
+   *     responses:
+   *       200:
+   *         description: Update successful
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 message:
+   *                   type: string
+   *                 output:
+   *                   type: string
+   *       500:
+   *         description: Server error
+   */
+  app.post('/api/update-ollama-models', async (req, res) => {
+    try {
+      const output = await executeUpdateScript();
+      res.json({ 
+        message: 'Ollama models update successful', 
+        output: output 
+      });
+    } catch (error) {
+      console.error('Error updating Ollama models:', error);
+      res.status(500).json({ 
+        error: 'Failed to update Ollama models', 
+        details: error.message 
+      });
     }
   });
 
