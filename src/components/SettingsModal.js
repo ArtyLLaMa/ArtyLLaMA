@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { X, ChevronDown, ExternalLink, Trash, Download, Info, Save, Plus } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { X, ExternalLink, Trash, Download, Info, Save, Plus } from 'lucide-react';
 import axios from 'axios';
 
 const OLLAMA_API_URL = 'http://localhost:11434';
@@ -16,12 +16,7 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
 
   const tabs = ['System Message', 'Model Management', 'About'];
 
-  useEffect(() => {
-    fetchUserPreferences();
-    fetchLocalModels();
-  }, []);
-
-  const fetchUserPreferences = async () => {
+  const fetchUserPreferences = useCallback(async () => {
     try {
       const response = await axios.get('/api/user-preferences');
       const data = response.data;
@@ -31,7 +26,12 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
     } catch (error) {
       console.error('Failed to fetch user preferences:', error);
     }
-  };
+  }, [selectedModel, systemMessage, setSelectedModel, setSystemMessage]);
+  
+  useEffect(() => {
+    fetchUserPreferences();
+    fetchLocalModels();
+  }, [fetchUserPreferences]);
 
   const fetchLocalModels = async () => {
     try {
