@@ -9,50 +9,48 @@ import MermaidArtifact from './artifacts/MermaidArtifact';
 import DOMPurify from 'dompurify';
 
 export const ARTIFACT_TYPES = {
-    CODE: 'code',
-    IMAGE: 'image',
-    CHART: 'chart',
-    TABLE: 'table',
-    INTERACTIVE: 'interactive',
-    HTML: 'html',
-    MERMAID: 'mermaid',
+  CODE: 'code',
+  IMAGE: 'image',
+  CHART: 'chart',
+  TABLE: 'table',
+  INTERACTIVE: 'interactive',
+  HTML: 'html',
+  MERMAID: 'mermaid',
+};
+
+export const ArtifactRenderer = ({ artifact }) => {
+  console.log('ArtifactRenderer received:', artifact);
+
+  const normalizedType = artifact.type.toLowerCase();
+  
+  const renderContent = () => {
+    console.log(`Rendering artifact of type: ${normalizedType}`);
+    switch (normalizedType) {
+      case ARTIFACT_TYPES.CODE:
+        return <CodeArtifact content={artifact.content} language={artifact.language} />;
+      case ARTIFACT_TYPES.IMAGE:
+        return <ImageArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.CHART:
+        return <ChartArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.TABLE:
+        return <TableArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.INTERACTIVE:
+        return <InteractiveArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.HTML:
+        return <HTMLArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.MERMAID:
+        return <MermaidArtifact content={artifact.content} />;
+      default:
+        console.error('Unknown artifact type:', artifact.type);
+        return <div>Unknown artifact type: {artifact.type}</div>;
+    }
   };
-  
-  export const ArtifactRenderer = ({ artifact }) => {
-    console.log('ArtifactRenderer received:', artifact);
-  
-    const normalizedType = artifact.type.toLowerCase();
-    
-    const renderContent = () => {
-      console.log(`Rendering artifact of type: ${normalizedType}`);
-      switch (normalizedType) {
-        case ARTIFACT_TYPES.CODE:
-          return <CodeArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.IMAGE:
-          return <ImageArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.CHART:
-          return <ChartArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.TABLE:
-        case 'table':
-          console.log('Rendering TableArtifact with content:', artifact.content);
-          return <TableArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.INTERACTIVE:
-          return <InteractiveArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.HTML:
-          return <HTMLArtifact content={artifact.content} />;
-        case ARTIFACT_TYPES.MERMAID:
-          return <MermaidArtifact content={artifact.content} />;
-        default:
-          console.error('Unknown artifact type:', artifact.type);
-          return <div>Unknown artifact type: {artifact.type}</div>;
-      }
-    };
-  
-    return (
-      <div className="artifact-renderer w-full h-full">
-        {renderContent()}
-      </div>
-    );
+
+  return (
+    <div className="artifact-renderer w-full h-full">
+      {renderContent()}
+    </div>
+  );
 }
 
 function detectArtifactType(content) {

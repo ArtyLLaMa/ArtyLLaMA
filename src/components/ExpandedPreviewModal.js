@@ -44,7 +44,7 @@ const ExpandedPreviewModal = ({ toggleExpand, artifact }) => {
         <div className="flex-grow overflow-auto p-4">
           {activeTab === 'preview' && (
             <div className="h-full">
-              <ArtifactRenderer artifact={artifact} />
+              <ArtifactRenderer artifact={artifact} key={artifact.identifier} />
             </div>
           )}
           {activeTab === 'code' && (

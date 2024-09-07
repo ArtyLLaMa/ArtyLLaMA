@@ -8,7 +8,6 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
   useEffect(() => {
-    // Automatically set the index to the last artifact when a new one is added
     setCurrentArtifactIndex(artifacts.length - 1);
   }, [artifacts.length]);
 
@@ -93,7 +92,7 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
         <h2 className="text-xl font-bold mb-2">{currentArtifact.title}</h2>
         {activeTab === 'preview' && (
           <div className="artifact-content max-h-[calc(100vh-200px)] overflow-auto">
-            <ArtifactRenderer artifact={currentArtifact} />
+            <ArtifactRenderer artifact={currentArtifact} key={currentArtifact.identifier} />
           </div>
         )}
         {activeTab === 'code' && (
