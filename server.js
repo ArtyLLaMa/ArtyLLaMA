@@ -54,16 +54,22 @@ async function initializeApiClients() {
     const preferences = JSON.parse(data);
     const apiKeys = preferences.apiKeys || {};
 
-    if (apiKeys.ANTHROPIC_API_KEY) {
+    if (apiKeys.ANTHROPIC_API_KEY && apiKeys.ANTHROPIC_API_KEY !== '********') {
       anthropic = new Anthropic.Anthropic({
         apiKey: apiKeys.ANTHROPIC_API_KEY,
       });
+    } else {
+      console.log("Valid Anthropic API key not found. Anthropic features will be disabled.");
+      anthropic = null;
     }
 
-    if (apiKeys.OPENAI_API_KEY) {
+    if (apiKeys.OPENAI_API_KEY && apiKeys.OPENAI_API_KEY !== '********') {
       openai = new OpenAI({
         apiKey: apiKeys.OPENAI_API_KEY,
       });
+    } else {
+      console.log("Valid OpenAI API key not found. OpenAI features will be disabled.");
+      openai = null;
     }
 
     ollamaApiUrl = apiKeys.OLLAMA_API_URL || process.env.OLLAMA_API_URL;
@@ -628,12 +634,24 @@ async function initializeApiClients() {
    */
   app.post("/api/user-preferences", async (req, res) => {
     try {
+      const currentPreferences = JSON.parse(await fs.readFile(USER_PREFERENCES_FILE, "utf8"));
+      const newPreferences = req.body;
+  
+      // Preserve existing API keys if new ones are not provided
+      if (newPreferences.apiKeys) {
+        Object.keys(newPreferences.apiKeys).forEach(key => {
+          if (newPreferences.apiKeys[key] === '********') {
+            newPreferences.apiKeys[key] = currentPreferences.apiKeys[key] || '';
+          }
+        });
+      }
+  
       await fs.writeFile(
         USER_PREFERENCES_FILE,
-        JSON.stringify(req.body, null, 2)
+        JSON.stringify(newPreferences, null, 2)
       );
       res.json({ message: "User preferences saved successfully" });
-
+  
       // Reinitialize API clients with new keys
       await initializeApiClients();
     } catch (error) {
