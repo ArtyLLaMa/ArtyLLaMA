@@ -10,6 +10,7 @@ const { exec } = require("child_process");
 const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
+const rateLimit = require('express-rate-limit');
 
 const USER_PREFERENCES_FILE = path.join(__dirname, "user_preferences.json");
 
@@ -126,6 +127,19 @@ async function initializeApiClients() {
   }
 
   const app = express();
+  app.set('trust proxy', 1); // Adjust this based on your environment
+
+  const apiLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+    skipFailedRequests: true, // Skip limiting if request fails
+    keyGenerator: (req, res) => req.ip, // Use the request IP as key
+  });
+
+  app.use(apiLimiter);
+
   app.use(express.json());
 
   const artifactManager = new ArtifactManager();
