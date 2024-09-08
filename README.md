@@ -35,12 +35,11 @@ This diagram shows how ArtyLLaMa processes different types of artifacts from the
 
 Before you begin, ensure you have met the following requirements:
 
-- Node.js (v14 or later)
-- npm (v6 or later)
+- Docker
 - Ollama running locally or on an accessible server (for Ollama models)
-- API keys for OpenAI and Anthropic (if using these providers)
+- API keys for OpenAI and Anthropic (optional, if using these providers)
 
-## Installation
+## Installation and Usage with Docker
 
 1. Clone the repository:
    ```
@@ -48,40 +47,62 @@ Before you begin, ensure you have met the following requirements:
    cd artyllama
    ```
 
-2. Install the dependencies:
+2. Build the Docker image:
+   ```
+   docker build -t artyllama:latest .
+   ```
+
+3. Run the Docker container:
+   ```
+   docker run -p 3000:80 -p 3001:3001 \
+     -e OLLAMA_API_URL=http://host.docker.internal:11434 \
+     -e ANTHROPIC_API_KEY=your_anthropic_key \
+     -e OPENAI_API_KEY=your_openai_key \
+     artyllama:latest
+   ```
+
+   Replace `your_anthropic_key` and `your_openai_key` with your actual API keys if you want to use these services.
+
+   Note: If you're running on Linux, you might need to add the `--add-host` flag:
+   ```
+   docker run --add-host=host.docker.internal:host-gateway \
+     -p 3000:80 -p 3001:3001 \
+     -e OLLAMA_API_URL=http://host.docker.internal:11434 \
+     -e ANTHROPIC_API_KEY=your_anthropic_key \
+     -e OPENAI_API_KEY=your_openai_key \
+     artyllama:latest
+   ```
+
+4. Access the application:
+   - Frontend: `http://localhost:3000`
+   - Backend: `http://localhost:3001`
+   - Swagger UI: `http://localhost:3001/api-docs`
+
+## Environment Variables
+
+ArtyLLama uses the following environment variables:
+
+- `OLLAMA_API_URL`: URL for the Ollama API (default: `http://host.docker.internal:11434`)
+- `ANTHROPIC_API_KEY`: Your Anthropic API key (optional)
+- `OPENAI_API_KEY`: Your OpenAI API key (optional)
+
+These can be set when running the Docker container using the `-e` flag.
+
+## Development Setup
+
+For local development without Docker:
+
+1. Install dependencies:
    ```
    npm install
    ```
 
-3. Create a `.env` file in the root directory and add the following:
+2. Create a `.env` file in the root directory with your environment variables.
+
+3. Start the development servers:
    ```
-   OLLAMA_API_URL=http://localhost:11434
-   OPENAI_API_KEY=your_openai_api_key_here
-   ANTHROPIC_API_KEY=your_anthropic_api_key_here
+   npm run dev
    ```
-   Replace the URLs and API keys with your actual values.
-
-## Usage
-
-To start both the frontend and backend servers concurrently:
-
-```
-npm run dev
-```
-
-This will start the React development server on `http://localhost:3000` and the backend server on `http://localhost:3001`.
-
-To start only the frontend:
-
-```
-npm start
-```
-
-To start only the backend:
-
-```
-npm run server
-```
 
 ## Contributing
 
