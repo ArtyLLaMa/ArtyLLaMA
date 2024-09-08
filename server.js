@@ -69,9 +69,14 @@ dotenv.config();
     apiKey: process.env.ANTHROPIC_API_KEY,
   });
 
-  const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-  });
+  // With this conditional initialization:
+  let openai;
+  if (process.env.OPENAI_API_KEY) {
+    const { OpenAI } = require("openai");
+    openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    });
+  }
 
   const artifactManager = new ArtifactManager();
 
@@ -134,39 +139,61 @@ dotenv.config();
    */
   app.get("/api/models", async (req, res) => {
     try {
-      // Fetch Ollama models
-      const ollamaResponse = await axios.get(
-        `${process.env.OLLAMA_API_URL}/api/tags`,
-      );
-
-      // Add Anthropic models
-      const anthropicModels = [
-        "claude-3-opus-20240229",
-        "claude-3-sonnet-20240229",
-        "claude-3-haiku-20240307",
-      ];
-
-      // Add OpenAI models
-      const openaiModels = [
-        "gpt-4o",
-        "gpt-4o-mini",
-        "gpt-4-turbo",
-        "gpt-4",
-        "gpt-3.5-turbo",
-      ];
-
-      const allModels = [
-        ...ollamaResponse.data.models,
-        ...anthropicModels.map((name) => ({ name })),
-        ...openaiModels.map((name) => ({ name })),
-      ];
-
+      let allModels = [];
+  
+      // Fetch Ollama models if OLLAMA_API_URL is set
+      if (process.env.OLLAMA_API_URL) {
+        try {
+          const ollamaResponse = await axios.get(
+            `${process.env.OLLAMA_API_URL}/api/tags`
+          );
+          allModels = [...allModels, ...ollamaResponse.data.models];
+        } catch (error) {
+          console.error("Error fetching Ollama models:", error);
+          // Don't throw here, just log the error and continue
+        }
+      } else {
+        console.log("OLLAMA_API_URL is not set. Skipping Ollama models fetch.");
+      }
+  
+      // Add Anthropic models if ANTHROPIC_API_KEY is set
+      if (process.env.ANTHROPIC_API_KEY) {
+        const anthropicModels = [
+          "claude-3-opus-20240229",
+          "claude-3-sonnet-20240229",
+          "claude-3-haiku-20240307",
+        ];
+        allModels = [...allModels, ...anthropicModels.map(name => ({ name }))];
+      } else {
+        console.log("ANTHROPIC_API_KEY is not set. Skipping Anthropic models.");
+      }
+  
+      // Fetch OpenAI models if OPENAI_API_KEY is set
+      if (openai) {
+        try {
+          const openaiModelsResponse = await openai.models.list();
+          const chatModels = openaiModelsResponse.data.filter(model => 
+            model.id.includes('gpt') || model.id.includes('text-davinci')
+          );
+          allModels = [...allModels, ...chatModels.map(model => ({ name: model.id }))];
+        } catch (error) {
+          console.error("Error fetching OpenAI models:", error);
+          // Don't throw here, just log the error and continue
+        }
+      } else {
+        console.log("OPENAI_API_KEY is not set. Skipping OpenAI models.");
+      }
+  
       res.json({ models: allModels });
     } catch (error) {
-      console.error("Error fetching models:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to fetch models", details: error.message });
+      console.error("Error in /api/models endpoint:", error);
+      let errorMessage = "Failed to fetch models";
+      if (error.response && error.response.data && error.response.data.error) {
+        errorMessage = error.response.data.error.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      res.status(500).json({ error: errorMessage });
     }
   });
 
@@ -280,6 +307,13 @@ dotenv.config();
           });
         }
       } else if (model.startsWith("gpt-")) {
+        // OpenAI API call
+        if (!openai) {
+          return res.status(500).json({
+            error: "OpenAI API error",
+            message: "OpenAI API key is not configured.",
+          });
+        }
         // OpenAI API call
         try {
           const stream = await openai.chat.completions.create({
