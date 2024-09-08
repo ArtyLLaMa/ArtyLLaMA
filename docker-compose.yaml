@@ -1,0 +1,26 @@
+services:
+  frontend:
+    image: ghcr.io/kroonen/artyllama-frontend:main
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+
+  backend:
+    image: ghcr.io/kroonen/artyllama-backend:main
+    ports:
+      - "3001:3001"
+    environment:
+      - OLLAMA_API_URL=http://ollama:11434
+    depends_on:
+      - ollama
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+volumes:
+  ollama_data:
