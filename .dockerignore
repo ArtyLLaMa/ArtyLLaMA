@@ -1,0 +1,44 @@
+# Node.js dependencies
+node_modules
+
+# Build outputs
+build
+dist
+
+# Environment files
+.env
+.env.*
+
+# Version control
+.git
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# Editor directories and files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Docker files
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Test coverage
+coverage
+
+# Temporary files
+tmp
+temp
+
+# ArtyLLama specific
+artifacts
+logs
