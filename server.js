@@ -15,12 +15,68 @@ const USER_PREFERENCES_FILE = path.join(__dirname, "user_preferences.json");
 
 dotenv.config();
 
+async function initializeUserPreferences() {
+  const defaultPreferences = {
+    savedMessages: [],
+    lastUsedModel: "",
+    lastUsedSystemMessage: "You are a helpful AI assistant.",
+    apiKeys: {
+      OLLAMA_API_URL: "http://localhost:11434",
+      ANTHROPIC_API_KEY: "",
+      OPENAI_API_KEY: ""
+    }
+  };
+
+  try {
+    await fs.access(USER_PREFERENCES_FILE);
+    console.log("User preferences file already exists.");
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      console.log("Creating default user preferences file...");
+      await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(defaultPreferences, null, 2));
+      console.log("Default user preferences file created successfully.");
+    } else {
+      console.error("Error checking user preferences file:", error);
+    }
+  }
+}
+
+// Call this function when your server starts
+initializeUserPreferences();
+
+let anthropic;
+let openai;
+let ollamaApiUrl;
+
+async function initializeApiClients() {
+  try {
+    const data = await fs.readFile(USER_PREFERENCES_FILE, "utf8");
+    const preferences = JSON.parse(data);
+    const apiKeys = preferences.apiKeys || {};
+
+    if (apiKeys.ANTHROPIC_API_KEY) {
+      anthropic = new Anthropic.Anthropic({
+        apiKey: apiKeys.ANTHROPIC_API_KEY,
+      });
+    }
+
+    if (apiKeys.OPENAI_API_KEY) {
+      openai = new OpenAI({
+        apiKey: apiKeys.OPENAI_API_KEY,
+      });
+    }
+
+    ollamaApiUrl = apiKeys.OLLAMA_API_URL || process.env.OLLAMA_API_URL;
+  } catch (error) {
+    console.error("Error initializing API clients:", error);
+  }
+}
+
 (async function () {
   const { default: chalk } = await import("chalk");
   const os = require("os");
 
-  console.log(
-    chalk.blue(`
+  console.log(chalk.blue(`
                     .+%%*:            .*%%*.
                    .@@#+@@-          :@@**@@.
                    *@%  +@@    ..    %@*  %@#
@@ -45,10 +101,11 @@ dotenv.config();
                 *%#                          *%#
                      Welcome to ArtyLLaMa!
   Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
-  `),
-  );
+  `));
 
   console.log(chalk.cyan("ArtyLLaMa Server Starting..."));
+
+  await initializeApiClients();
 
   function combineConsecutiveMessages(messages) {
     return messages.reduce((acc, msg, index) => {
@@ -65,19 +122,6 @@ dotenv.config();
   const app = express();
   app.use(express.json());
 
-  const anthropic = new Anthropic.Anthropic({
-    apiKey: process.env.ANTHROPIC_API_KEY,
-  });
-
-  // With this conditional initialization:
-  let openai;
-  if (process.env.OPENAI_API_KEY) {
-    const { OpenAI } = require("openai");
-    openai = new OpenAI({
-      apiKey: process.env.OPENAI_API_KEY,
-    });
-  }
-
   const artifactManager = new ArtifactManager();
 
   // Swagger definition
@@ -87,8 +131,7 @@ dotenv.config();
       info: {
         title: "ArtyLLaMa API",
         version: "0.1.0",
-        description:
-          "API for ArtyLLaMa, an AI-powered chat interface for interacting with open-source language models",
+        description: "API for ArtyLLaMa, an AI-powered chat interface for interacting with open-source language models",
       },
       servers: [
         {
@@ -140,24 +183,19 @@ dotenv.config();
   app.get("/api/models", async (req, res) => {
     try {
       let allModels = [];
-  
-      // Fetch Ollama models if OLLAMA_API_URL is set
-      if (process.env.OLLAMA_API_URL) {
+
+      if (ollamaApiUrl) {
         try {
-          const ollamaResponse = await axios.get(
-            `${process.env.OLLAMA_API_URL}/api/tags`
-          );
+          const ollamaResponse = await axios.get(`${ollamaApiUrl}/api/tags`);
           allModels = [...allModels, ...ollamaResponse.data.models];
         } catch (error) {
           console.error("Error fetching Ollama models:", error);
-          // Don't throw here, just log the error and continue
         }
       } else {
         console.log("OLLAMA_API_URL is not set. Skipping Ollama models fetch.");
       }
-  
-      // Add Anthropic models if ANTHROPIC_API_KEY is set
-      if (process.env.ANTHROPIC_API_KEY) {
+
+      if (anthropic) {
         const anthropicModels = [
           "claude-3-opus-20240229",
           "claude-3-sonnet-20240229",
@@ -167,23 +205,21 @@ dotenv.config();
       } else {
         console.log("ANTHROPIC_API_KEY is not set. Skipping Anthropic models.");
       }
-  
-      // Fetch OpenAI models if OPENAI_API_KEY is set
+
       if (openai) {
         try {
           const openaiModelsResponse = await openai.models.list();
-          const chatModels = openaiModelsResponse.data.filter(model => 
+          const chatModels = openaiModelsResponse.data.filter(model =>
             model.id.includes('gpt') || model.id.includes('text-davinci')
           );
           allModels = [...allModels, ...chatModels.map(model => ({ name: model.id }))];
         } catch (error) {
           console.error("Error fetching OpenAI models:", error);
-          // Don't throw here, just log the error and continue
         }
       } else {
         console.log("OPENAI_API_KEY is not set. Skipping OpenAI models.");
       }
-  
+
       res.json({ models: allModels });
     } catch (error) {
       console.error("Error in /api/models endpoint:", error);
@@ -247,6 +283,12 @@ dotenv.config();
 
     try {
       if (model.startsWith("claude-")) {
+        if (!anthropic) {
+          return res.status(500).json({
+            error: "Anthropic API error",
+            message: "Anthropic API key is not configured.",
+          });
+        }
         // Anthropic API call
         try {
           const systemMessage = combinedMessages.find(
@@ -301,13 +343,11 @@ dotenv.config();
           console.error("Anthropic API error:", error);
           res.status(500).json({
             error: "Anthropic API error",
-            message:
-              "An error occurred while processing your request. Please try again later.",
+            message: "An error occurred while processing your request. Please try again later.",
             details: error.message,
           });
         }
       } else if (model.startsWith("gpt-")) {
-        // OpenAI API call
         if (!openai) {
           return res.status(500).json({
             error: "OpenAI API error",
@@ -362,14 +402,19 @@ dotenv.config();
           console.error("OpenAI API error:", error);
           res.status(500).json({
             error: "OpenAI API error",
-            message:
-              "An error occurred while processing your request. Please try again later.",
+            message: "An error occurred while processing your request. Please try again later.",
             details: error.message,
           });
         }
       } else {
         // Ollama API call
-        const ollamaUrl = `${process.env.OLLAMA_API_URL}/api/chat`;
+        if (!ollamaApiUrl) {
+          return res.status(500).json({
+            error: "Ollama API error",
+            message: "Ollama API URL is not configured.",
+          });
+        }
+        const ollamaUrl = `${ollamaApiUrl}/api/chat`;
         console.log("Sending request to Ollama:", ollamaUrl);
         console.log(
           "Request payload:",
@@ -458,17 +503,14 @@ dotenv.config();
           console.error("Ollama API error:", error);
           res.status(500).json({
             error: "Ollama API error",
-            message:
-              "An error occurred while processing your request. Please try again later.",
+            message: "An error occurred while processing your request. Please try again later.",
             details: error.message,
           });
         }
       }
     } catch (error) {
       console.error("API error:", error);
-      res
-        .status(500)
-        .json({ error: "Failed to call API", details: error.message });
+      res.status(500).json({ error: "Failed to call API", details: error.message });
     }
   });
 
@@ -485,16 +527,49 @@ dotenv.config();
    *           application/json:
    *             schema:
    *               type: object
+   *               properties:
+   *                 savedMessages:
+   *                   type: array
+   *                   items:
+   *                     type: object
+   *                     properties:
+   *                       name:
+   *                         type: string
+   *                       content:
+   *                         type: string
+   *                 lastUsedModel:
+   *                   type: string
+   *                 lastUsedSystemMessage:
+   *                   type: string
+   *                 apiKeys:
+   *                   type: object
+   *                   properties:
+   *                     OLLAMA_API_URL:
+   *                       type: string
+   *                     ANTHROPIC_API_KEY:
+   *                       type: string
+   *                     OPENAI_API_KEY:
+   *                       type: string
    *       500:
    *         description: Server error
    */
   app.get("/api/user-preferences", async (req, res) => {
     try {
       const data = await fs.readFile(USER_PREFERENCES_FILE, "utf8");
-      res.json(JSON.parse(data));
+      const preferences = JSON.parse(data);
+
+      // Mask API keys for security
+      if (preferences.apiKeys) {
+        Object.keys(preferences.apiKeys).forEach(key => {
+          if (preferences.apiKeys[key]) {
+            preferences.apiKeys[key] = '********';
+          }
+        });
+      }
+
+      res.json(preferences);
     } catch (error) {
       if (error.code === "ENOENT") {
-        // File doesn't exist, return empty preferences
         res.json({});
       } else {
         console.error("Error reading user preferences:", error);
@@ -515,6 +590,29 @@ dotenv.config();
    *         application/json:
    *           schema:
    *             type: object
+   *             properties:
+   *               savedMessages:
+   *                 type: array
+   *                 items:
+   *                   type: object
+   *                   properties:
+   *                     name:
+   *                       type: string
+   *                     content:
+   *                       type: string
+   *               lastUsedModel:
+   *                 type: string
+   *               lastUsedSystemMessage:
+   *                 type: string
+   *               apiKeys:
+   *                 type: object
+   *                 properties:
+   *                   OLLAMA_API_URL:
+   *                     type: string
+   *                   ANTHROPIC_API_KEY:
+   *                     type: string
+   *                   OPENAI_API_KEY:
+   *                     type: string
    *     responses:
    *       200:
    *         description: Successful response
@@ -532,9 +630,12 @@ dotenv.config();
     try {
       await fs.writeFile(
         USER_PREFERENCES_FILE,
-        JSON.stringify(req.body, null, 2),
+        JSON.stringify(req.body, null, 2)
       );
       res.json({ message: "User preferences saved successfully" });
+
+      // Reinitialize API clients with new keys
+      await initializeApiClients();
     } catch (error) {
       console.error("Error saving user preferences:", error);
       res.status(500).json({ error: "Failed to save user preferences" });

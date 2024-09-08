@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { X, ExternalLink, Trash, Download, Info, Save, Plus } from 'lucide-react';
+import { X, ExternalLink, Trash, Download, Info, Save, Plus, Key } from 'lucide-react';
 import axios from 'axios';
 
 const OLLAMA_API_URL = 'http://localhost:11434';
@@ -13,8 +13,13 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
   const [newMessageContent, setNewMessageContent] = useState('');
   const [modelInfo, setModelInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [apiKeys, setApiKeys] = useState({
+    OLLAMA_API_URL: '',
+    ANTHROPIC_API_KEY: '',
+    OPENAI_API_KEY: ''
+  });
 
-  const tabs = ['System Message', 'Model Management', 'About'];
+  const tabs = ['System Message', 'Model Management', 'API Keys', 'About'];
 
   const fetchUserPreferences = useCallback(async () => {
     try {
@@ -23,11 +28,12 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
       setSavedMessages(data.savedMessages || []);
       setSelectedModel(data.lastUsedModel || selectedModel);
       setSystemMessage(data.lastUsedSystemMessage || systemMessage);
+      setApiKeys(data.apiKeys || {});
     } catch (error) {
       console.error('Failed to fetch user preferences:', error);
     }
   }, [selectedModel, systemMessage, setSelectedModel, setSystemMessage]);
-  
+
   useEffect(() => {
     fetchUserPreferences();
     fetchLocalModels();
@@ -47,7 +53,8 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
       await axios.post('/api/user-preferences', {
         savedMessages,
         lastUsedModel: selectedModel,
-        lastUsedSystemMessage: systemMessage
+        lastUsedSystemMessage: systemMessage,
+        apiKeys
       });
     } catch (error) {
       console.error('Failed to save user preferences:', error);
@@ -103,6 +110,20 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
       setModelInfo(response.data);
     } catch (error) {
       console.error('Failed to fetch model info:', error);
+    }
+  };
+
+  const handleApiKeyChange = (e) => {
+    setApiKeys({ ...apiKeys, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveApiKeys = async () => {
+    try {
+      await saveUserPreferences();
+      alert('API keys saved successfully');
+    } catch (error) {
+      console.error('Failed to save API keys:', error);
+      alert('Failed to save API keys');
     }
   };
 
@@ -244,6 +265,47 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                     </pre>
                   </div>
                 )}
+              </div>
+            )}
+            {activeTab === 'API Keys' && (
+              <div className="bg-gray-700 p-3 rounded-lg">
+                <h3 className="text-sm font-semibold mb-2">API Key Management</h3>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-1">Ollama API URL:</label>
+                  <input
+                    type="text"
+                    name="OLLAMA_API_URL"
+                    value={apiKeys.OLLAMA_API_URL}
+                    onChange={handleApiKeyChange}
+                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-1">Anthropic API Key:</label>
+                  <input
+                    type="password"
+                    name="ANTHROPIC_API_KEY"
+                    value={apiKeys.ANTHROPIC_API_KEY}
+                    onChange={handleApiKeyChange}
+                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                  />
+                </div>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-1">OpenAI API Key:</label>
+                  <input
+                    type="password"
+                    name="OPENAI_API_KEY"
+                    value={apiKeys.OPENAI_API_KEY}
+                    onChange={handleApiKeyChange}
+                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveApiKeys}
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center"
+                >
+                  <Key size={12} className="mr-1" /> Save API Keys
+                </button>
               </div>
             )}
             {activeTab === 'About' && (
