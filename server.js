@@ -22,7 +22,7 @@ async function initializeUserPreferences() {
     lastUsedModel: "",
     lastUsedSystemMessage: "You are a helpful AI assistant.",
     apiKeys: {
-      OLLAMA_API_URL: "http://localhost:11434",
+      OLLAMA_API_URL: "",
       ANTHROPIC_API_KEY: "",
       OPENAI_API_KEY: ""
     }
