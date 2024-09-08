@@ -664,7 +664,7 @@ async function initializeApiClients() {
   function executeUpdateScript() {
     return new Promise((resolve, reject) => {
       const scriptPath = path.join(__dirname, "update_ollama_models.sh");
-      exec(`bash ${scriptPath}`, (error, stdout, stderr) => {
+      execFile('bash', [scriptPath], (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing update script: ${error}`);
           reject(error);
