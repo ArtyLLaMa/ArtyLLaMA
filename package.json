@@ -22,7 +22,6 @@
     "openai": "^4.58.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-scripts": "^0.0.0",
     "react-select": "^5.8.0",
     "react-syntax-highlighter": "^15.5.0",
     "swagger-jsdoc": "^6.2.8",
@@ -68,6 +67,7 @@
     "nth-check": "^2.1.1",
     "postcss": "^8.4.45",
     "react-app-rewired": "^0.1.0",
+    "react-scripts": "^5.0.1",
     "resolve-url-loader": "^5.0.0",
     "svgo": "^3.3.2",
     "wait-on": "^8.0.0"
