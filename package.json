@@ -63,7 +63,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@svgr/plugin-svgo": "^8.1.0",
     "@svgr/webpack": "^8.1.0",
-    "concurrently": "^9.0.0",
+    "concurrently": "^9.0.1",
     "css-select": "^5.1.0",
     "nth-check": "^2.1.1",
     "postcss": "^8.4.45",
