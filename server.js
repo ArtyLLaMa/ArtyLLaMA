@@ -6,11 +6,12 @@ const dotenv = require("dotenv");
 const { OpenAI } = require("openai");
 const ArtifactManager = require("./src/utils/ArtifactManager");
 const fs = require("fs").promises;
-const { exec } = require("child_process");
+const { execFile } = require("child_process");
 const path = require("path");
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
-const rateLimit = require('express-rate-limit');
+const rateLimit = require("express-rate-limit");
+const compression = require("compression");
 
 const USER_PREFERENCES_FILE = path.join(__dirname, "user_preferences.json");
 
@@ -24,17 +25,20 @@ async function initializeUserPreferences() {
     apiKeys: {
       OLLAMA_API_URL: "",
       ANTHROPIC_API_KEY: "",
-      OPENAI_API_KEY: ""
-    }
+      OPENAI_API_KEY: "",
+    },
   };
 
   try {
     await fs.access(USER_PREFERENCES_FILE);
     console.log("User preferences file already exists.");
   } catch (error) {
-    if (error.code === 'ENOENT') {
+    if (error.code === "ENOENT") {
       console.log("Creating default user preferences file...");
-      await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(defaultPreferences, null, 2));
+      await fs.writeFile(
+        USER_PREFERENCES_FILE,
+        JSON.stringify(defaultPreferences, null, 2)
+      );
       console.log("Default user preferences file created successfully.");
     } else {
       console.error("Error checking user preferences file:", error);
@@ -42,7 +46,6 @@ async function initializeUserPreferences() {
   }
 }
 
-// Call this function when your server starts
 initializeUserPreferences();
 
 let anthropic;
@@ -55,21 +58,25 @@ async function initializeApiClients() {
     const preferences = JSON.parse(data);
     const apiKeys = preferences.apiKeys || {};
 
-    if (apiKeys.ANTHROPIC_API_KEY && apiKeys.ANTHROPIC_API_KEY !== '********') {
+    if (apiKeys.ANTHROPIC_API_KEY && apiKeys.ANTHROPIC_API_KEY !== "********") {
       anthropic = new Anthropic.Anthropic({
         apiKey: apiKeys.ANTHROPIC_API_KEY,
       });
     } else {
-      console.log("Valid Anthropic API key not found. Anthropic features will be disabled.");
+      console.log(
+        "Valid Anthropic API key not found. Anthropic features will be disabled."
+      );
       anthropic = null;
     }
 
-    if (apiKeys.OPENAI_API_KEY && apiKeys.OPENAI_API_KEY !== '********') {
+    if (apiKeys.OPENAI_API_KEY && apiKeys.OPENAI_API_KEY !== "********") {
       openai = new OpenAI({
         apiKey: apiKeys.OPENAI_API_KEY,
       });
     } else {
-      console.log("Valid OpenAI API key not found. OpenAI features will be disabled.");
+      console.log(
+        "Valid OpenAI API key not found. OpenAI features will be disabled."
+      );
       openai = null;
     }
 
@@ -83,32 +90,34 @@ async function initializeApiClients() {
   const { default: chalk } = await import("chalk");
   const os = require("os");
 
-  console.log(chalk.blue(`
-                    .+%%*:            .*%%*.
-                   .@@#+@@-          :@@**@@.
-                   *@%  +@@    ..    %@*  %@#
-                   %@+  .@@*#@@@@@@#*@@:  +@@
-                   %@+  .@@@*-:...-*@@@:  +@@
-                   #@@@@@@#.         *@@@@@@%
-                 :%@@+-:::            :::-+%@%-
-                =@@=                        =@@=
-               .@@=                          -@@:
-               =@@    :+=   -+*##*+-   =+-    @@=
-               -@@:   %@@.+@*-....-*@+.%@@   .@@-
-                #@%:   . +@:  :##:  :@+ .   :%@#
-                :@@*     +@:   ++   .@*     *@@:
-                %@#       +@#=----=*@+       *@%
-               .@@-         :======:         :@@:
-               :@@:                          :@@:
-                @@*                          +@@
-                :@@*                        *@@:
-                .@@*                        +@@.
-                *@%                          %@*
-                %@*                          +@%
-                *%#                          *%#
-                     Welcome to ArtyLLaMa!
-  Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
-  `));
+  console.log(
+    chalk.blue(`
+                      .+%%*:            .*%%*.
+                     .@@#+@@-          :@@**@@.
+                     *@%  +@@    ..    %@*  %@#
+                     %@+  .@@*#@@@@@@#*@@:  +@@
+                     %@+  .@@@*-:...-*@@@:  +@@
+                     #@@@@@@#.         *@@@@@@%
+                   :%@@+-:::            :::-+%@%-
+                  =@@=                        =@@=
+                 .@@=                          -@@:
+                 =@@    :+=   -+*##*+-   =+-    @@=
+                 -@@:   %@@.+@*-....-*@+.%@@   .@@-
+                  #@%:   . +@:  :##:  :@+ .   :%@#
+                  :@@*     +@:   ++   .@*     *@@:
+                  %@#       +@#=----=*@+       *@%
+                 .@@-         :======:         :@@:
+                 :@@:                          :@@:
+                  @@*                          +@@
+                  :@@*                        *@@:
+                  .@@*                        +@@.
+                  *@%                          %@*
+                  %@*                          +@%
+                  *%#                          *%#
+                       Welcome to ArtyLLaMa!
+    Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
+    `)
+  );
 
   console.log(chalk.cyan("ArtyLLaMa Server Starting..."));
 
@@ -126,8 +135,7 @@ async function initializeApiClients() {
     }, []);
   }
 
-  const app = express();
-  app.set('trust proxy', 1); // Adjust this based on your environment
+  app.set("trust proxy", 1); // Adjust this based on your environment
 
   const apiLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
@@ -140,6 +148,23 @@ async function initializeApiClients() {
 
   app.use(apiLimiter);
 
+  // Configure compression middleware to skip SSE responses
+  app.use(
+    compression({
+      filter: (req, res) => {
+        if (
+          req.headers.accept &&
+          req.headers.accept.includes("text/event-stream")
+        ) {
+          // Don't compress SSE responses
+          return false;
+        }
+        // Fallback to standard filter function
+        return compression.filter(req, res);
+      },
+    })
+  );
+
   app.use(express.json());
 
   const artifactManager = new ArtifactManager();
@@ -151,7 +176,8 @@ async function initializeApiClients() {
       info: {
         title: "ArtyLLaMa API",
         version: "0.1.0",
-        description: "API for ArtyLLaMa, an AI-powered chat interface for interacting with open-source language models",
+        description:
+          "API for ArtyLLaMa, an AI-powered chat interface for interacting with open-source language models",
       },
       servers: [
         {
@@ -303,80 +329,93 @@ async function initializeApiClients() {
 
     try {
       if (model.startsWith("claude-")) {
+        // Anthropic API call
+        // (Assuming the Anthropic SDK supports streaming; adjust accordingly)
+        // For the sake of this example, we'll simulate streaming
         if (!anthropic) {
           return res.status(500).json({
             error: "Anthropic API error",
             message: "Anthropic API key is not configured.",
           });
         }
-        // Anthropic API call
+
         try {
           const systemMessage = combinedMessages.find(
-            (msg) => msg.role === "system",
+            (msg) => msg.role === "system"
           );
           let userMessages = combinedMessages.filter(
-            (msg) => msg.role !== "system",
+            (msg) => msg.role !== "system"
           );
 
-          const response = await anthropic.messages.create({
+          // Simulate streaming response from Anthropic
+          const response = await anthropic.completions.create({
             model: model,
-            max_tokens: 4096,
-            system: systemMessage ? systemMessage.content : undefined,
-            messages: userMessages,
+            prompt: combinedMessages.map((msg) => msg.content).join("\n"),
+            max_tokens_to_sample: 4096,
+            stream: true,
           });
 
           res.writeHead(200, {
             "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-transform",
             Connection: "keep-alive",
           });
 
-          const words = response.content[0].text.split(" ");
-          for (const word of words) {
-            res.write(
-              `data: ${JSON.stringify({
-                content: word + " ",
-                provider: "anthropic",
-              })}\n\n`,
-            );
+          let fullContent = "";
 
-            await new Promise((resolve) => setTimeout(resolve, 50));
+          for await (const data of response) {
+            if (data.completion) {
+              const chunkContent = data.completion;
+              fullContent += chunkContent;
+
+              res.write(
+                `data: ${JSON.stringify({
+                  content: chunkContent,
+                  provider: "anthropic",
+                })}\n\n`
+              );
+              res.flush(); // Ensure immediate sending
+            }
           }
 
           res.write(
             `data: ${JSON.stringify({
-              fullContent: response.content[0].text,
+              content: "[DONE]",
               provider: "anthropic",
-              usage: response.usage,
-            })}\n\n`,
+              fullContent: fullContent,
+            })}\n\n`
           );
-
-          res.write("data: [DONE]\n\n");
           res.end();
 
           artifactManager.addArtifact({
             type: "chat",
             model: model,
-            content: response.content[0].text,
+            content: fullContent,
           });
         } catch (error) {
           console.error("Anthropic API error:", error);
-          res.status(500).json({
-            error: "Anthropic API error",
-            message: "An error occurred while processing your request. Please try again later.",
-            details: error.message,
-          });
+          if (!res.headersSent) {
+            res.status(500).json({
+              error: "Anthropic API error",
+              message:
+                "An error occurred while processing your request. Please try again later.",
+              details: error.message,
+            });
+          } else {
+            res.end();
+          }
         }
       } else if (model.startsWith("gpt-")) {
+        // OpenAI API call
         if (!openai) {
           return res.status(500).json({
             error: "OpenAI API error",
             message: "OpenAI API key is not configured.",
           });
         }
-        // OpenAI API call
+
         try {
-          const stream = await openai.chat.completions.create({
+          const completion = await openai.chat.completions.create({
             model: model,
             messages: combinedMessages,
             max_tokens: 4096,
@@ -385,23 +424,39 @@ async function initializeApiClients() {
 
           res.writeHead(200, {
             "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-transform",
             Connection: "keep-alive",
           });
 
           let fullContent = "";
-          for await (const chunk of stream) {
-            if (chunk.choices[0]?.delta?.content) {
-              const chunkContent = chunk.choices[0].delta.content;
-              fullContent += chunkContent;
 
+          try {
+            for await (const part of completion) {
+              if (part.choices[0]?.delta?.content) {
+                const chunkContent = part.choices[0].delta.content;
+                fullContent += chunkContent;
+
+                res.write(
+                  `data: ${JSON.stringify({
+                    content: chunkContent,
+                    provider: "openai",
+                  })}\n\n`
+                );
+                res.flush(); // Ensure immediate sending
+              }
+            }
+          } catch (streamError) {
+            console.error("Error during OpenAI streaming:", streamError);
+            if (!res.writableEnded) {
               res.write(
                 `data: ${JSON.stringify({
-                  content: chunkContent,
-                  provider: "openai",
-                })}\n\n`,
+                  error: "Error during streaming",
+                  message: streamError.message,
+                })}\n\n`
               );
+              res.end();
             }
+            return; // Prevent further execution
           }
 
           res.write(
@@ -409,7 +464,7 @@ async function initializeApiClients() {
               content: "[DONE]",
               provider: "openai",
               fullContent: fullContent,
-            })}\n\n`,
+            })}\n\n`
           );
           res.end();
 
@@ -420,11 +475,17 @@ async function initializeApiClients() {
           });
         } catch (error) {
           console.error("OpenAI API error:", error);
-          res.status(500).json({
-            error: "OpenAI API error",
-            message: "An error occurred while processing your request. Please try again later.",
-            details: error.message,
-          });
+          if (!res.headersSent) {
+            res.status(500).json({
+              error: "OpenAI API error",
+              message:
+                "An error occurred while processing your request. Please try again later.",
+              details: error.message,
+            });
+          } else if (!res.writableEnded) {
+            res.end();
+          }
+          return; // Prevent further execution
         }
       } else {
         // Ollama API call
@@ -434,12 +495,9 @@ async function initializeApiClients() {
             message: "Ollama API URL is not configured.",
           });
         }
+
         const ollamaUrl = `${ollamaApiUrl}/api/chat`;
         console.log("Sending request to Ollama:", ollamaUrl);
-        console.log(
-          "Request payload:",
-          JSON.stringify({ model, messages: combinedMessages, stream: true }),
-        );
 
         try {
           const response = await axios.post(
@@ -451,53 +509,80 @@ async function initializeApiClients() {
             },
             {
               responseType: "stream",
-            },
+            }
           );
 
           res.writeHead(200, {
             "Content-Type": "text/event-stream",
-            "Cache-Control": "no-cache",
+            "Cache-Control": "no-cache, no-transform",
             Connection: "keep-alive",
           });
 
           let fullContent = "";
 
           response.data.on("data", (chunk) => {
-            const lines = chunk
-              .toString()
-              .split("\n")
-              .filter((line) => line.trim() !== "");
-            for (const line of lines) {
-              try {
-                const parsedLine = JSON.parse(line);
-                if (parsedLine.message && parsedLine.message.content) {
-                  fullContent += parsedLine.message.content;
-                  res.write(
-                    `data: ${JSON.stringify({
-                      content: parsedLine.message.content,
-                      provider: "ollama",
-                    })}\n\n`,
-                  );
-                }
-                if (parsedLine.done) {
-                  res.write(
-                    `data: ${JSON.stringify({
-                      content: "[DONE]",
-                      provider: "ollama",
-                      fullContent: fullContent,
-                    })}\n\n`,
-                  );
-                  res.end();
+            try {
+              const lines = chunk
+                .toString("utf8")
+                .split("\n")
+                .filter((line) => line.trim() !== "");
+              for (const line of lines) {
+                try {
+                  const parsedLine = JSON.parse(line);
+                  if (parsedLine.message && parsedLine.message.content) {
+                    const chunkContent = parsedLine.message.content;
+                    fullContent += chunkContent;
+                    res.write(
+                      `data: ${JSON.stringify({
+                        content: chunkContent,
+                        provider: "ollama",
+                      })}\n\n`
+                    );
+                    res.flush(); // Ensure immediate sending
+                  }
+                  if (parsedLine.done) {
+                    res.write(
+                      `data: ${JSON.stringify({
+                        content: "[DONE]",
+                        provider: "ollama",
+                        fullContent: fullContent,
+                      })}\n\n`
+                    );
+                    res.end();
 
-                  artifactManager.addArtifact({
-                    type: "chat",
-                    model: model,
-                    content: fullContent,
-                  });
+                    artifactManager.addArtifact({
+                      type: "chat",
+                      model: model,
+                      content: fullContent,
+                    });
+                    return; // Prevent further execution
+                  }
+                } catch (parseError) {
+                  console.error("Error parsing Ollama chunk:", parseError);
+                  if (!res.writableEnded) {
+                    res.write(
+                      `data: ${JSON.stringify({
+                        error: "Error parsing chunk",
+                        message: parseError.message,
+                      })}\n\n`
+                    );
+                    res.end();
+                  }
+                  return; // Prevent further execution
                 }
-              } catch (parseError) {
-                console.error("Error parsing Ollama chunk:", parseError);
               }
+            } catch (dataError) {
+              console.error("Error processing Ollama data:", dataError);
+              if (!res.writableEnded) {
+                res.write(
+                  `data: ${JSON.stringify({
+                    error: "Error processing data",
+                    message: dataError.message,
+                  })}\n\n`
+                );
+                res.end();
+              }
+              return; // Prevent further execution
             }
           });
 
@@ -508,7 +593,7 @@ async function initializeApiClients() {
                   content: "[DONE]",
                   provider: "ollama",
                   fullContent: fullContent,
-                })}\n\n`,
+                })}\n\n`
               );
               res.end();
 
@@ -519,18 +604,46 @@ async function initializeApiClients() {
               });
             }
           });
+
+          response.data.on("error", (error) => {
+            console.error("Ollama stream error:", error);
+            if (!res.writableEnded) {
+              res.write(
+                `data: ${JSON.stringify({
+                  error: "Ollama stream error",
+                  message: error.message,
+                })}\n\n`
+              );
+              res.end();
+            }
+            return; // Prevent further execution
+          });
         } catch (error) {
           console.error("Ollama API error:", error);
-          res.status(500).json({
-            error: "Ollama API error",
-            message: "An error occurred while processing your request. Please try again later.",
-            details: error.message,
-          });
+          if (!res.headersSent) {
+            res.status(500).json({
+              error: "Ollama API error",
+              message:
+                "An error occurred while processing your request. Please try again later.",
+              details: error.message,
+            });
+          } else if (!res.writableEnded) {
+            res.end();
+          }
+          return; // Prevent further execution
         }
       }
     } catch (error) {
       console.error("API error:", error);
-      res.status(500).json({ error: "Failed to call API", details: error.message });
+      if (!res.headersSent) {
+        res.status(500).json({
+          error: "Failed to call API",
+          details: error.message,
+        });
+      } else if (!res.writableEnded) {
+        res.end();
+      }
+      return; // Prevent further execution
     }
   });
 
@@ -693,6 +806,27 @@ async function initializeApiClients() {
     });
   }
 
+  app.get("/api/test-stream", (req, res) => {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache, no-transform",
+      Connection: "keep-alive",
+    });
+  
+    let count = 0;
+    const intervalId = setInterval(() => {
+      count += 1;
+      res.write(`data: ${JSON.stringify({ message: `Event ${count}` })}\n\n`);
+      res.flush();
+  
+      if (count === 10) {
+        clearInterval(intervalId);
+        res.write("data: [DONE]\n\n");
+        res.end();
+      }
+    }, 1000);
+  });
+
   /**
    * @swagger
    * /api/update-ollama-models:
@@ -737,7 +871,7 @@ async function initializeApiClients() {
     console.log(chalk.green(`Server running on http://${HOST}:${PORT}`));
     console.log(chalk.yellow(`Local access: http://localhost:${PORT}`));
     console.log(
-      chalk.blue(`Swagger UI available at http://localhost:${PORT}/api-docs`),
+      chalk.blue(`Swagger UI available at http://localhost:${PORT}/api-docs`)
     );
 
     // Get the local IP addresses
@@ -751,13 +885,13 @@ async function initializeApiClients() {
         }
         console.log(
           chalk.cyan(
-            `Network access (${interfaceName}): http://${iface.address}:${PORT}`,
-          ),
+            `Network access (${interfaceName}): http://${iface.address}:${PORT}`
+          )
         );
         console.log(
           chalk.magenta(
-            `Swagger UI network access (${interfaceName}): http://${iface.address}:${PORT}/api-docs`,
-          ),
+            `Swagger UI network access (${interfaceName}): http://${iface.address}:${PORT}/api-docs`
+          )
         );
       });
     });
@@ -766,10 +900,14 @@ async function initializeApiClients() {
   // Error handling middleware
   app.use((err, req, res, next) => {
     console.error(chalk.red("Error:"), err);
-    res.status(500).json({
-      error: "Internal Server Error",
-      message: "An unexpected error occurred. Please try again later.",
-    });
+    if (!res.headersSent) {
+      res.status(500).json({
+        error: "Internal Server Error",
+        message: "An unexpected error occurred. Please try again later.",
+      });
+    } else if (!res.writableEnded) {
+      res.end();
+    }
   });
 
   process.on("exit", () => {
@@ -784,7 +922,7 @@ async function initializeApiClients() {
       chalk.red("Unhandled Rejection at:"),
       promise,
       chalk.red("reason:"),
-      reason,
+      reason
     );
     // Application specific logging, throwing an error, or other logic here
   });

@@ -4,8 +4,8 @@ updates:
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 10
+      interval: daily
+    open-pull-requests-limit: 25
     versioning-strategy: auto
     allow:
       - dependency-type: "direct"

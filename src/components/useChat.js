@@ -100,160 +100,173 @@ Remember:
     [],
   );
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setPlaceholderText(
-        placeholders[Math.floor(Math.random() * placeholders.length)],
-      );
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [placeholders]);
+useEffect(() => {
+  const interval = setInterval(() => {
+  setPlaceholderText(
+    placeholders[Math.floor(Math.random() * placeholders.length)]
+  );
+}, 5000);
 
-  const handleSubmit = useCallback(
-    async (e) => {
-      e.preventDefault();
-      if (!inputValue.trim()) return;
-      if (!selectedModel) {
-        setError("Please select a model before sending a message.");
-        return;
-      }
+return () => clearInterval(interval);
+}, [placeholders]);
 
-      const userMessage = {
-        role: "user",
-        content: inputValue.trim(),
-        timestamp: new Date(),
-      };
-      setMessages((prevMessages) => [...prevMessages, userMessage]);
-      setInputValue("");
-      setIsLoading(true);
-      setError(null);
+const handleSubmit = useCallback(
+async (e) => {
+  e.preventDefault();
+  if (!inputValue.trim()) return;
+  if (!selectedModel) {
+    setError("Please select a model before sending a message.");
+    return;
+  }
 
-      const startTime = Date.now();
-      let totalTokens = 0;
+  const userMessage = {
+    role: "user",
+    content: inputValue.trim(),
+    timestamp: new Date(),
+  };
+  setMessages((prevMessages) => [...prevMessages, userMessage]);
+  setInputValue("");
+  setIsLoading(true);
+  setError(null);
 
+  const startTime = Date.now();
+  let totalTokens = 0;
+
+  try {
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: selectedModel,
+        messages: [
+          { role: "system", content: systemMessage },
+          ...messages,
+          userMessage,
+        ],
+      }),
+    });
+
+    if (!response.ok) {
+      // Try to parse error response as JSON
+      let errorText = await response.text();
       try {
-        const response = await fetch("/api/chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            model: selectedModel,
-            messages: [
-              { role: "system", content: systemMessage },
-              ...messages,
-              userMessage,
-            ],
-          }),
-        });
+        const errorData = JSON.parse(errorText);
+        throw new Error(
+          errorData.message || `API responded with ${response.status}`
+        );
+      } catch (parseError) {
+        // The response is not JSON
+        throw new Error(`API responded with ${response.status}: ${errorText}`);
+      }
+    }
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(
-            errorData.message || `API responded with ${response.status}`,
-          );
-        }
+    const contentType = response.headers.get("Content-Type") || "";
+    if (!contentType.includes("text/event-stream")) {
+      const errorText = await response.text();
+      throw new Error(
+        `Expected text/event-stream but received ${contentType}: ${errorText}`
+      );
+    }
 
-        const reader = response.body.getReader();
-        const decoder = new TextDecoder();
-        let aiMessage = {
-          role: "assistant",
-          content: "",
-          timestamp: new Date(),
-        };
-        setStreamingMessage(aiMessage);
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let aiMessage = {
+      role: "assistant",
+      content: "",
+      timestamp: new Date(),
+    };
+    setStreamingMessage(aiMessage);
 
-        while (true) {
-          const { value, done } = await reader.read();
-          if (done) break;
+    let buffer = "";
 
-          const chunk = decoder.decode(value);
-          const lines = chunk.split("\n");
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
 
-          for (const line of lines) {
-            if (line.startsWith("data: ")) {
-              const data = line.slice(5).trim();
+      buffer += decoder.decode(value, { stream: true });
 
-              if (data === "[DONE]") {
-                // End of stream, finalize the message
-                setStreamingMessage(null);
-                setMessages((prevMessages) => [...prevMessages, aiMessage]);
-                break;
-              }
+      let lines = buffer.split("\n");
+      buffer = lines.pop(); // Save incomplete line for next chunk
 
-              try {
-                const parsedData = JSON.parse(data);
-                if (parsedData.content) {
-                  // Update the aiMessage content token by token
-                  aiMessage.content += parsedData.content;
-                  aiMessage.provider = parsedData.provider;
+      for (const line of lines) {
+        if (line.trim() === "") continue;
 
-                  setStreamingMessage({ ...aiMessage });
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
 
-                  totalTokens += 1; // Increment token count
+          if (data === "[DONE]") {
+            setStreamingMessage(null);
+            setMessages((prevMessages) => [...prevMessages, aiMessage]);
+            break;
+          }
 
-                  // Update stats in real-time
-                  const currentTime = Date.now();
-                  const elapsedTime = (currentTime - startTime) / 1000;
-                  setStats({
-                    tokensPerSecond: Math.round(totalTokens / elapsedTime),
-                    totalTokens: totalTokens,
-                  });
-
-                  // Introduce a small delay to simulate token-by-token streaming
-                  await new Promise((resolve) => setTimeout(resolve, 10));
-                }
-                if (parsedData.fullContent) {
-                  // This is the final message with full content
-                  aiMessage.content = parsedData.fullContent;
-                  setStreamingMessage(null);
-                  setMessages((prevMessages) => [...prevMessages, aiMessage]);
-                  break;
-                }
-              } catch (parseError) {
-                console.error("Error parsing JSON:", parseError);
-              }
+          try {
+            const parsedData = JSON.parse(data);
+            if (parsedData.error) {
+              // Handle error message from server
+              setError(`Error from server: ${parsedData.message}`);
+              setStreamingMessage(null);
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                { role: "error", content: parsedData.message, timestamp: new Date() },
+              ]);
+              break;
             }
+            if (parsedData.content) {
+              aiMessage.content += parsedData.content;
+              aiMessage.provider = parsedData.provider;
+
+              setStreamingMessage({ ...aiMessage });
+
+              totalTokens += parsedData.content.split(" ").length;
+
+              const currentTime = Date.now();
+              const elapsedTime = (currentTime - startTime) / 1000;
+              setStats({
+                tokensPerSecond: Math.round(totalTokens / elapsedTime),
+                totalTokens: totalTokens,
+              });
+            }
+            if (parsedData.fullContent) {
+              aiMessage.content = parsedData.fullContent;
+              setStreamingMessage(null);
+              setMessages((prevMessages) => [...prevMessages, aiMessage]);
+              break;
+            }
+          } catch (parseError) {
+            console.error("Error parsing JSON:", parseError);
           }
         }
-
-        // Add the final message to the messages array
-        // setMessages((prevMessages) => [...prevMessages, aiMessage]);
-
-        const endTime = Date.now();
-        const duration = (endTime - startTime) / 1000;
-        setStats({
-          tokensPerSecond: Math.round(totalTokens / duration),
-          totalTokens: totalTokens,
-        });
-
-        return aiMessage;
-      } catch (error) {
-        console.error("Detailed error:", error);
-        setError(`Failed to get a response from the AI. ${error.message}`);
-        setMessages((prevMessages) => [
-          ...prevMessages,
-          { role: "error", content: error.message, timestamp: new Date() },
-        ]);
-      } finally {
-        setIsLoading(false);
-        setStreamingMessage(null);
       }
-    },
-    [inputValue, messages, selectedModel, systemMessage],
-  );
+    }
+  } catch (error) {
+    console.error("Detailed error:", error);
+    setError(`Failed to get a response from the AI. ${error.message}`);
+    setMessages((prevMessages) => [
+      ...prevMessages,
+      { role: "error", content: error.message, timestamp: new Date() },
+    ]);
+  } finally {
+    setIsLoading(false);
+    setStreamingMessage(null);
+  }
+},
+[inputValue, messages, selectedModel, systemMessage]
+);
 
-  return {
-    messages,
-    streamingMessage,
-    inputValue,
-    setInputValue,
-    placeholderText,
-    error,
-    selectedModel,
-    setSelectedModel,
-    isLoading,
-    systemMessage,
-    setSystemMessage,
-    stats,
-    handleSubmit,
-  };
+return {
+messages,
+streamingMessage,
+inputValue,
+setInputValue,
+placeholderText,
+error,
+selectedModel,
+setSelectedModel,
+isLoading,
+systemMessage,
+setSystemMessage,
+stats,
+handleSubmit
+};
 };
