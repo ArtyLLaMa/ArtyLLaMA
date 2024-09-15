@@ -1,85 +1,112 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { X, ExternalLink, Trash, Download, Info, Save, Plus, Key } from 'lucide-react';
-import axios from 'axios';
+import React, { useState, useEffect, useCallback, useRef } from "react";
+import {
+  X,
+  ExternalLink,
+  Trash,
+  Download,
+  Info,
+  Save,
+  Plus,
+  Key,
+} from "lucide-react";
+import axios from "axios";
 
-const OLLAMA_API_URL = 'http://localhost:11434';
+const OLLAMA_API_URL = "http://localhost:11434";
 
-const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, systemMessage, setSystemMessage }) => {
-  const [activeTab, setActiveTab] = useState('System Message');
+const SettingsModal = ({
+  toggleSettings,
+  selectedModel,
+  setSelectedModel,
+  systemMessage,
+  setSystemMessage,
+  updateAndSaveUserPreferences,
+}) => {
+  const [activeTab, setActiveTab] = useState("System Message");
   const [savedMessages, setSavedMessages] = useState([]);
   const [localModels, setLocalModels] = useState([]);
-  const [newModelName, setNewModelName] = useState('');
-  const [newMessageName, setNewMessageName] = useState('');
-  const [newMessageContent, setNewMessageContent] = useState('');
+  const [newModelName, setNewModelName] = useState("");
+  const [newMessageName, setNewMessageName] = useState("");
+  const [newMessageContent, setNewMessageContent] = useState("");
   const [modelInfo, setModelInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState({
-    OLLAMA_API_URL: '',
-    ANTHROPIC_API_KEY: '',
-    OPENAI_API_KEY: ''
+    OLLAMA_API_URL: "",
+    ANTHROPIC_API_KEY: "",
+    OPENAI_API_KEY: "",
   });
 
-  const tabs = ['System Message', 'Model Management', 'API Keys', 'About'];
+  const tabs = ["System Message", "Model Management", "API Keys", "About"];
+
+  const [localSystemMessage, setLocalSystemMessage] = useState(systemMessage);
+  const initialRenderRef = useRef(true);
 
   const fetchUserPreferences = useCallback(async () => {
-    try {
-      const response = await axios.get('/api/user-preferences');
-      const data = response.data;
-      setSavedMessages(data.savedMessages || []);
-      setSelectedModel(data.lastUsedModel || selectedModel);
-      setSystemMessage(data.lastUsedSystemMessage || systemMessage);
-      setApiKeys(data.apiKeys || {});
-    } catch (error) {
-      console.error('Failed to fetch user preferences:', error);
+    if (initialRenderRef.current) {
+      try {
+        const response = await axios.get("/api/user-preferences");
+        const data = response.data;
+        setSavedMessages(data.savedMessages || []);
+        setApiKeys(data.apiKeys || {});
+        if (data.lastUsedModel && data.lastUsedModel !== selectedModel) {
+          setSelectedModel(data.lastUsedModel);
+        }
+        if (
+          data.lastUsedSystemMessage &&
+          data.lastUsedSystemMessage !== systemMessage
+        ) {
+          setLocalSystemMessage(data.lastUsedSystemMessage);
+        }
+      } catch (error) {
+        console.error("Failed to fetch user preferences:", error);
+      }
+      initialRenderRef.current = false;
     }
-  }, [selectedModel, systemMessage, setSelectedModel, setSystemMessage]);
+  }, [selectedModel, systemMessage, setSelectedModel]);
 
   useEffect(() => {
     fetchUserPreferences();
     fetchLocalModels();
   }, [fetchUserPreferences]);
 
+  const handleLoadMessage = (content) => {
+    setLocalSystemMessage(content);
+  };
+
+  const handleSaveSystemMessage = () => {
+    setSystemMessage(localSystemMessage);
+    updateAndSaveUserPreferences({
+      lastUsedSystemMessage: localSystemMessage,
+      savedMessages,
+      apiKeys,
+    });
+  };
+
   const fetchLocalModels = async () => {
     try {
       const response = await axios.get(`${OLLAMA_API_URL}/api/tags`);
       setLocalModels(response.data.models || []);
     } catch (error) {
-      console.error('Failed to fetch local models:', error);
-    }
-  };
-
-  const saveUserPreferences = async () => {
-    try {
-      await axios.post('/api/user-preferences', {
-        savedMessages,
-        lastUsedModel: selectedModel,
-        lastUsedSystemMessage: systemMessage,
-        apiKeys
-      });
-    } catch (error) {
-      console.error('Failed to save user preferences:', error);
+      console.error("Failed to fetch local models:", error);
     }
   };
 
   const handleAddMessage = () => {
     if (newMessageName && newMessageContent) {
-      const updatedMessages = [...savedMessages, { name: newMessageName, content: newMessageContent }];
+      const updatedMessages = [
+        ...savedMessages,
+        { name: newMessageName, content: newMessageContent },
+      ];
       setSavedMessages(updatedMessages);
-      saveUserPreferences();
-      setNewMessageName('');
-      setNewMessageContent('');
+      updateAndSaveUserPreferences({ savedMessages: updatedMessages });
+      setNewMessageName("");
+      setNewMessageContent("");
     }
   };
 
   const handleRemoveMessage = (index) => {
     const updatedMessages = savedMessages.filter((_, i) => i !== index);
     setSavedMessages(updatedMessages);
-    saveUserPreferences();
-  };
-
-  const handleLoadMessage = (content) => {
-    setSystemMessage(content);
-    saveUserPreferences();
+    updateAndSaveUserPreferences({ savedMessages: updatedMessages });
   };
 
   const handlePullModel = async () => {
@@ -87,9 +114,9 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
     try {
       await axios.post(`${OLLAMA_API_URL}/api/pull`, { name: newModelName });
       fetchLocalModels();
-      setNewModelName('');
+      setNewModelName("");
     } catch (error) {
-      console.error('Failed to pull model:', error);
+      console.error("Failed to pull model:", error);
     } finally {
       setIsLoading(false);
     }
@@ -97,34 +124,33 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
 
   const handleDeleteModel = async (modelName) => {
     try {
-      await axios.delete(`${OLLAMA_API_URL}/api/delete`, { data: { name: modelName } });
+      await axios.delete(`${OLLAMA_API_URL}/api/delete`, {
+        data: { name: modelName },
+      });
       fetchLocalModels();
     } catch (error) {
-      console.error('Failed to delete model:', error);
+      console.error("Failed to delete model:", error);
     }
   };
 
   const handleShowModelInfo = async (modelName) => {
     try {
-      const response = await axios.post(`${OLLAMA_API_URL}/api/show`, { name: modelName });
+      const response = await axios.post(`${OLLAMA_API_URL}/api/show`, {
+        name: modelName,
+      });
       setModelInfo(response.data);
     } catch (error) {
-      console.error('Failed to fetch model info:', error);
+      console.error("Failed to fetch model info:", error);
     }
   };
 
   const handleApiKeyChange = (e) => {
-    setApiKeys({ ...apiKeys, [e.target.name]: e.target.value });
+    setApiKeys((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleSaveApiKeys = async () => {
-    try {
-      await saveUserPreferences();
-      alert('API keys saved successfully');
-    } catch (error) {
-      console.error('Failed to save API keys:', error);
-      alert('Failed to save API keys');
-    }
+  const handleSaveApiKeys = () => {
+    updateAndSaveUserPreferences({ apiKeys });
+    alert("API keys saved successfully");
   };
 
   return (
@@ -132,7 +158,10 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
       <div className="bg-gray-800 w-[800px] rounded-lg shadow-xl">
         <div className="flex justify-between items-center p-4 border-b border-gray-700">
           <h2 className="text-xl font-bold">Settings</h2>
-          <button onClick={toggleSettings} className="text-gray-400 hover:text-white">
+          <button
+            onClick={toggleSettings}
+            className="text-gray-400 hover:text-white"
+          >
             <X size={24} />
           </button>
         </div>
@@ -141,7 +170,9 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
             {tabs.map((tab) => (
               <button
                 key={tab}
-                className={`w-full text-left p-2 rounded text-sm ${activeTab === tab ? 'bg-gray-700' : 'hover:bg-gray-700'}`}
+                className={`w-full text-left p-2 rounded text-sm ${
+                  activeTab === tab ? "bg-gray-700" : "hover:bg-gray-700"
+                }`}
                 onClick={() => setActiveTab(tab)}
               >
                 {tab}
@@ -149,27 +180,34 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
             ))}
           </div>
           <div className="w-3/4 p-4 overflow-y-auto text-sm">
-            {activeTab === 'System Message' && (
+            {activeTab === "System Message" && (
               <div className="bg-gray-700 p-3 rounded-lg">
                 <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1">Current System Message</label>
+                  <label className="block text-xs font-medium mb-1">
+                    Current System Message
+                  </label>
                   <textarea
-                    value={systemMessage}
-                    onChange={(e) => setSystemMessage(e.target.value)}
+                    value={localSystemMessage}
+                    onChange={(e) => setLocalSystemMessage(e.target.value)}
                     className="w-full p-2 bg-gray-600 rounded text-xs"
                     rows="3"
                   />
                   <button
-                    onClick={saveUserPreferences}
+                    onClick={handleSaveSystemMessage}
                     className="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center"
                   >
                     <Save size={12} className="mr-1" /> Save Current
                   </button>
                 </div>
                 <div className="mb-3">
-                  <h3 className="text-sm font-semibold mb-2">Saved System Messages</h3>
+                  <h3 className="text-sm font-semibold mb-2">
+                    Saved System Messages
+                  </h3>
                   {savedMessages.map((msg, index) => (
-                    <div key={index} className="mb-2 flex justify-between items-center bg-gray-600 p-2 rounded">
+                    <div
+                      key={index}
+                      className="mb-2 flex justify-between items-center bg-gray-600 p-2 rounded"
+                    >
                       <span className="text-xs">{msg.name}</span>
                       <div>
                         <button
@@ -189,7 +227,9 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                   ))}
                 </div>
                 <div className="mb-3">
-                  <h3 className="text-sm font-semibold mb-2">Add New System Message</h3>
+                  <h3 className="text-sm font-semibold mb-2">
+                    Add New System Message
+                  </h3>
                   <input
                     type="text"
                     value={newMessageName}
@@ -213,7 +253,7 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                 </div>
               </div>
             )}
-            {activeTab === 'Model Management' && (
+            {activeTab === "Model Management" && (
               <div>
                 <h3 className="text-lg font-semibold mb-4">Model Management</h3>
                 <div className="mb-4">
@@ -231,14 +271,17 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                       disabled={isLoading}
                       className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 transition-colors"
                     >
-                      {isLoading ? 'Pulling...' : <Download size={20} />}
+                      {isLoading ? "Pulling..." : <Download size={20} />}
                     </button>
                   </div>
                 </div>
                 <div>
                   <h4 className="font-medium mb-2">Local Models</h4>
                   {localModels.map((model) => (
-                    <div key={model.name} className="flex items-center justify-between bg-gray-700 p-2 rounded mb-2">
+                    <div
+                      key={model.name}
+                      className="flex items-center justify-between bg-gray-700 p-2 rounded mb-2"
+                    >
                       <span>{model.name}</span>
                       <div>
                         <button
@@ -267,11 +310,15 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                 )}
               </div>
             )}
-            {activeTab === 'API Keys' && (
+            {activeTab === "API Keys" && (
               <div className="bg-gray-700 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold mb-2">API Key Management</h3>
+                <h3 className="text-sm font-semibold mb-2">
+                  API Key Management
+                </h3>
                 <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1">Ollama API URL:</label>
+                  <label className="block text-xs font-medium mb-1">
+                    Ollama API URL:
+                  </label>
                   <input
                     type="text"
                     name="OLLAMA_API_URL"
@@ -281,7 +328,9 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1">Anthropic API Key:</label>
+                  <label className="block text-xs font-medium mb-1">
+                    Anthropic API Key:
+                  </label>
                   <input
                     type="password"
                     name="ANTHROPIC_API_KEY"
@@ -291,7 +340,9 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                   />
                 </div>
                 <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1">OpenAI API Key:</label>
+                  <label className="block text-xs font-medium mb-1">
+                    OpenAI API Key:
+                  </label>
                   <input
                     type="password"
                     name="OPENAI_API_KEY"
@@ -308,11 +359,13 @@ const SettingsModal = ({ toggleSettings, selectedModel, setSelectedModel, system
                 </button>
               </div>
             )}
-            {activeTab === 'About' && (
+            {activeTab === "About" && (
               <div className="bg-gray-700 p-3 rounded-lg">
                 <h3 className="text-sm font-semibold mb-2">About ArtyLLaMa</h3>
                 <p className="text-xs text-gray-300 mb-3">
-                  ArtyLLaMa is an AI-powered chat interface that allows users to interact with various language models and generate rich, interactive content.
+                  ArtyLLaMa is an AI-powered chat interface that allows users to
+                  interact with various language models and generate rich,
+                  interactive content.
                 </p>
                 <a
                   href="https://github.com/kroonen/artyllama"

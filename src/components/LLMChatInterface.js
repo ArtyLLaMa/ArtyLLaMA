@@ -1,12 +1,20 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import { Sidebar as SidebarIcon } from 'lucide-react';
-import Header from './Header';
-import ChatArea from './ChatArea';
-import PreviewPanel from './PreviewPanel';
-import SettingsModal from './SettingsModal';
-import ExpandedPreviewModal from './ExpandedPreviewModal';
-import { useChat } from './useChat';
-import { parseArtifacts } from '../utils/artifactParser';
+import React, {
+  useState,
+  useCallback,
+  useEffect,
+  useRef,
+  useMemo,
+} from "react";
+import axios from "axios";
+import { Sidebar as SidebarIcon } from "lucide-react";
+import Header from "./Header";
+import ChatArea from "./ChatArea";
+import PreviewPanel from "./PreviewPanel";
+import SettingsModal from "./SettingsModal";
+import ExpandedPreviewModal from "./ExpandedPreviewModal";
+import { useChat } from "./useChat";
+import { parseArtifacts } from "../utils/artifactParser";
+import { debounce } from "lodash";
 
 const LLMChatInterface = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -14,6 +22,23 @@ const LLMChatInterface = () => {
   const [artifacts, setArtifacts] = useState([]);
   const [expandedArtifact, setExpandedArtifact] = useState(null);
   const [totalArtifacts, setTotalArtifacts] = useState(0);
+  const [userPreferences, setUserPreferences] = useState(null);
+  const userPreferencesFetchedRef = useRef(false);
+
+  const fetchUserPreferences = useCallback(async () => {
+    if (userPreferencesFetchedRef.current) return;
+    try {
+      const response = await axios.get("/api/user-preferences");
+      setUserPreferences(response.data);
+      userPreferencesFetchedRef.current = true;
+    } catch (error) {
+      console.error("Failed to fetch user preferences:", error);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchUserPreferences();
+  }, [fetchUserPreferences]);
 
   const {
     messages,
@@ -23,20 +48,23 @@ const LLMChatInterface = () => {
     placeholderText,
     error,
     selectedModel,
-    setSelectedModel,
+    setSelectedModel: setChatSelectedModel,
     isLoading,
     systemMessage,
-    setSystemMessage,
+    setSystemMessage: setChatSystemMessage,
     stats,
     handleSubmit,
-  } = useChat();
+  } = useChat(userPreferences);
 
   const processMessageForArtifacts = useCallback((message) => {
-    if (message && message.role === 'assistant') {
-      const { artifacts: parsedArtifacts, totalArtifacts: messageTotalArtifacts } = parseArtifacts(message.content);
+    if (message && message.role === "assistant") {
+      const {
+        artifacts: parsedArtifacts,
+        totalArtifacts: messageTotalArtifacts,
+      } = parseArtifacts(message.content);
       if (parsedArtifacts.length > 0) {
-        setArtifacts(prevArtifacts => [...prevArtifacts, ...parsedArtifacts]);
-        setTotalArtifacts(prevTotal => prevTotal + messageTotalArtifacts);
+        setArtifacts((prevArtifacts) => [...prevArtifacts, ...parsedArtifacts]);
+        setTotalArtifacts((prevTotal) => prevTotal + messageTotalArtifacts);
         setIsPreviewOpen(true);
       }
       return messageTotalArtifacts;
@@ -56,34 +84,94 @@ const LLMChatInterface = () => {
     }
   }, [streamingMessage, processMessageForArtifacts]);
 
-  const onMessageSubmit = useCallback(async (e) => {
-    e.preventDefault();
-    await handleSubmit(e);
-  }, [handleSubmit]);
+  const onMessageSubmit = useCallback(
+    async (e) => {
+      e.preventDefault();
+      await handleSubmit(e);
+    },
+    [handleSubmit]
+  );
 
-  const toggleSettings = useCallback(() => setIsSettingsOpen(prev => !prev), []);
-  const togglePreview = useCallback(() => setIsPreviewOpen(prev => !prev), []);
+  const toggleSettings = useCallback(
+    () => setIsSettingsOpen((prev) => !prev),
+    []
+  );
+  const togglePreview = useCallback(
+    () => setIsPreviewOpen((prev) => !prev),
+    []
+  );
+
+  const saveUserPreferences = async (updatedPreferences) => {
+    try {
+      await axios.post("/api/user-preferences", updatedPreferences);
+    } catch (error) {
+      console.error("Failed to save user preferences:", error);
+    }
+  };
+
+  const debouncedSaveUserPreferences = useMemo(
+    () => debounce(saveUserPreferences, 1000),
+    []
+  );
+
+  const updateAndSaveUserPreferences = useCallback(
+    (updatedPreferences) => {
+      setUserPreferences((prev) => {
+        const newPreferences = { ...prev, ...updatedPreferences };
+        debouncedSaveUserPreferences(newPreferences);
+        return newPreferences;
+      });
+    },
+    [debouncedSaveUserPreferences]
+  );
+
+  const setSelectedModel = useCallback(
+    (model) => {
+      setChatSelectedModel(model);
+      updateAndSaveUserPreferences({ lastUsedModel: model });
+    },
+    [setChatSelectedModel, updateAndSaveUserPreferences]
+  );
+
+  const setSystemMessage = useCallback(
+    (message) => {
+      setChatSystemMessage(message);
+      updateAndSaveUserPreferences({ lastUsedSystemMessage: message });
+    },
+    [setChatSystemMessage, updateAndSaveUserPreferences]
+  );
+
+  const headerProps = useMemo(
+    () => ({
+      selectedModel,
+      setSelectedModel,
+      stats,
+      toggleSettings,
+    }),
+    [selectedModel, setSelectedModel, stats, toggleSettings]
+  );
 
   return (
     <div className="flex flex-col h-screen bg-gray-900 text-gray-300">
-      <Header
-        selectedModel={selectedModel}
-        setSelectedModel={setSelectedModel}
-        stats={stats}
-        toggleSettings={toggleSettings}
-      />
+      <Header {...headerProps} />
       <div className="flex-grow flex overflow-hidden">
         <div className="flex-grow flex flex-col">
-          <ChatArea
-            messages={messages}
-            streamingMessage={streamingMessage}
-            error={error}
-            inputValue={inputValue}
-            setInputValue={setInputValue}
-            placeholderText={placeholderText}
-            isLoading={isLoading}
-            handleSubmit={onMessageSubmit}
-          />
+          {!userPreferences ? (
+            <div className="flex items-center justify-center flex-grow">
+              Loading...
+            </div>
+          ) : (
+            <ChatArea
+              messages={messages}
+              streamingMessage={streamingMessage}
+              error={error}
+              inputValue={inputValue}
+              setInputValue={setInputValue}
+              placeholderText={placeholderText}
+              isLoading={isLoading}
+              handleSubmit={onMessageSubmit}
+            />
+          )}
         </div>
         {isPreviewOpen && (
           <PreviewPanel
@@ -109,6 +197,8 @@ const LLMChatInterface = () => {
           setSelectedModel={setSelectedModel}
           systemMessage={systemMessage}
           setSystemMessage={setSystemMessage}
+          userPreferences={userPreferences}
+          updateAndSaveUserPreferences={updateAndSaveUserPreferences}
         />
       )}
       {expandedArtifact && (

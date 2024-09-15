@@ -11,8 +11,9 @@
     "@testing-library/user-event": "^14.5.2",
     "audit": "^0.0.6",
     "axios": "^1.7.7",
-    "chalk": "^5.3.0",
+    "chalk": "^4.1.2",
     "chart.js": "^4.4.4",
+    "cors": "^2.8.5",
     "dompurify": "^3.1.6",
     "dotenv": "^16.4.5",
     "express": "^5.0.0",
@@ -33,11 +34,11 @@
     "winston": "^3.14.2"
   },
   "scripts": {
-    "start": "react-scripts start --config webpack.config.js",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
+    "start": "DISABLE_ESLINT_PLUGIN=true BROWSER=none react-app-rewired start",
+    "build": "react-app-rewired build",
+    "test": "react-app-rewired test",
     "eject": "react-scripts eject",
-    "server": "node server.js",
+    "server": "NODE_ENV=development node --no-deprecation server.js",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm start\" -n \"server,client\" -c \"blue,green\""
   },
   "eslintConfig": {
@@ -65,6 +66,7 @@
     "@svgr/webpack": "^8.1.0",
     "concurrently": "^9.0.1",
     "css-select": "^5.1.0",
+    "customize-cra": "^1.0.0",
     "nth-check": "^2.1.1",
     "postcss": "^8.4.45",
     "react-app-rewired": "^2.2.1",

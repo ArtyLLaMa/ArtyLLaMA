@@ -12,11 +12,19 @@ const swaggerUi = require("swagger-ui-express");
 const swaggerJsdoc = require("swagger-jsdoc");
 const rateLimit = require("express-rate-limit");
 const compression = require("compression");
+const chalk = require("chalk");
+const os = require("os");
+const cors = require("cors");
 
 const USER_PREFERENCES_FILE = path.join(__dirname, "user_preferences.json");
 
 dotenv.config();
 
+let anthropic;
+let openai;
+let ollamaApiUrl;
+
+// Initialize user preferences
 async function initializeUserPreferences() {
   const defaultPreferences = {
     savedMessages: [],
@@ -46,12 +54,7 @@ async function initializeUserPreferences() {
   }
 }
 
-initializeUserPreferences();
-
-let anthropic;
-let openai;
-let ollamaApiUrl;
-
+// Initialize API clients
 async function initializeApiClients() {
   try {
     const data = await fs.readFile(USER_PREFERENCES_FILE, "utf8");
@@ -86,9 +89,11 @@ async function initializeApiClients() {
   }
 }
 
-(async function () {
-  const { default: chalk } = await import("chalk");
-  const os = require("os");
+// Start the server
+async function startServer() {
+  // Initialize user preferences and API clients
+  await initializeUserPreferences();
+  await initializeApiClients();
 
   console.log(
     chalk.blue(`
@@ -121,8 +126,6 @@ async function initializeApiClients() {
 
   console.log(chalk.cyan("ArtyLLaMa Server Starting..."));
 
-  await initializeApiClients();
-
   function combineConsecutiveMessages(messages) {
     return messages.reduce((acc, msg, index) => {
       const { role, content } = msg;
@@ -135,20 +138,20 @@ async function initializeApiClients() {
     }, []);
   }
 
-  app.set("trust proxy", 1); // Adjust this based on your environment
+  app.set("trust proxy", 1);
 
   const apiLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 100, // limit each IP to 100 requests per windowMs
-    standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-    legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-    skipFailedRequests: true, // Skip limiting if request fails
-    keyGenerator: (req, res) => req.ip, // Use the request IP as key
+    windowMs: 1 * 60 * 1000,
+    max: 1000,
+    standardHeaders: true,
+    legacyHeaders: false,
+    skipFailedRequests: true,
+    keyGenerator: (req) => req.ip,
   });
 
   app.use(apiLimiter);
+  app.use(cors());
 
-  // Configure compression middleware to skip SSE responses
   app.use(
     compression({
       filter: (req, res) => {
@@ -156,10 +159,8 @@ async function initializeApiClients() {
           req.headers.accept &&
           req.headers.accept.includes("text/event-stream")
         ) {
-          // Don't compress SSE responses
           return false;
         }
-        // Fallback to standard filter function
         return compression.filter(req, res);
       },
     })
@@ -207,7 +208,8 @@ async function initializeApiClients() {
    * /api/models:
    *   get:
    *     summary: Retrieve available AI models
-   *     description: Fetches a list of available AI models from various providers
+   *     description: Fetches a list of available AI models from various providers (Ollama, Anthropic, OpenAI)
+   *     tags: [Models]
    *     responses:
    *       200:
    *         description: Successful response
@@ -219,12 +221,16 @@ async function initializeApiClients() {
    *                 models:
    *                   type: array
    *                   items:
-   *                     type: object
-   *                     properties:
-   *                       name:
-   *                         type: string
+   *                     $ref: '#/components/schemas/Model'
    *       500:
    *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   app.get("/api/models", async (req, res) => {
     try {
@@ -247,7 +253,10 @@ async function initializeApiClients() {
           "claude-3-sonnet-20240229",
           "claude-3-haiku-20240307",
         ];
-        allModels = [...allModels, ...anthropicModels.map(name => ({ name }))];
+        allModels = [
+          ...allModels,
+          ...anthropicModels.map((name) => ({ name })),
+        ];
       } else {
         console.log("ANTHROPIC_API_KEY is not set. Skipping Anthropic models.");
       }
@@ -255,10 +264,14 @@ async function initializeApiClients() {
       if (openai) {
         try {
           const openaiModelsResponse = await openai.models.list();
-          const chatModels = openaiModelsResponse.data.filter(model =>
-            model.id.includes('gpt') || model.id.includes('text-davinci')
+          const chatModels = openaiModelsResponse.data.filter(
+            (model) =>
+              model.id.includes("gpt") || model.id.includes("text-davinci")
           );
-          allModels = [...allModels, ...chatModels.map(model => ({ name: model.id }))];
+          allModels = [
+            ...allModels,
+            ...chatModels.map((model) => ({ name: model.id })),
+          ];
         } catch (error) {
           console.error("Error fetching OpenAI models:", error);
         }
@@ -284,7 +297,8 @@ async function initializeApiClients() {
    * /api/chat:
    *   post:
    *     summary: Send a chat message
-   *     description: Send a message to the selected AI model and receive a response
+   *     description: Send a message to the selected AI model and receive a streaming response
+   *     tags: [Chat]
    *     requestBody:
    *       required: true
    *       content:
@@ -297,6 +311,7 @@ async function initializeApiClients() {
    *             properties:
    *               model:
    *                 type: string
+   *                 description: The name of the AI model to use (e.g., 'claude-3-opus-20240229', 'gpt-4', etc.)
    *               messages:
    *                 type: array
    *                 items:
@@ -304,19 +319,55 @@ async function initializeApiClients() {
    *                   properties:
    *                     role:
    *                       type: string
+   *                       enum: [system, user, assistant]
    *                     content:
    *                       type: string
+   *               max_tokens:
+   *                 type: integer
+   *                 description: The maximum number of tokens to generate
+   *               temperature:
+   *                 type: number
+   *                 description: Controls randomness in the response (0.0 to 1.0)
+   *               stream:
+   *                 type: boolean
+   *                 description: Whether to stream the response (always true for this endpoint)
    *     responses:
    *       200:
    *         description: Successful response
    *         content:
    *           text/event-stream:
    *             schema:
-   *               type: string
+   *               type: object
+   *               properties:
+   *                 content:
+   *                   type: string
+   *                   description: The generated text chunk
+   *                 provider:
+   *                   type: string
+   *                   enum: [anthropic, openai, ollama]
+   *                   description: The AI provider used for this response
    *       400:
    *         description: Bad request
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    *       500:
    *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *                 message:
+   *                   type: string
+   *                 details:
+   *                   type: string
    */
   app.post("/api/chat", async (req, res) => {
     const { model, messages } = req.body;
@@ -329,9 +380,6 @@ async function initializeApiClients() {
 
     try {
       if (model.startsWith("claude-")) {
-        // Anthropic API call
-        // (Assuming the Anthropic SDK supports streaming; adjust accordingly)
-        // For the sake of this example, we'll simulate streaming
         if (!anthropic) {
           return res.status(500).json({
             error: "Anthropic API error",
@@ -343,17 +391,22 @@ async function initializeApiClients() {
           const systemMessage = combinedMessages.find(
             (msg) => msg.role === "system"
           );
-          let userMessages = combinedMessages.filter(
+          const userMessages = combinedMessages.filter(
             (msg) => msg.role !== "system"
           );
 
-          // Simulate streaming response from Anthropic
-          const response = await anthropic.completions.create({
+          const messageParams = {
             model: model,
-            prompt: combinedMessages.map((msg) => msg.content).join("\n"),
-            max_tokens_to_sample: 4096,
+            max_tokens: 4096,
+            messages: userMessages,
             stream: true,
-          });
+          };
+
+          if (systemMessage) {
+            messageParams.system = systemMessage.content;
+          }
+
+          const stream = await anthropic.messages.create(messageParams);
 
           res.writeHead(200, {
             "Content-Type": "text/event-stream",
@@ -363,29 +416,46 @@ async function initializeApiClients() {
 
           let fullContent = "";
 
-          for await (const data of response) {
-            if (data.completion) {
-              const chunkContent = data.completion;
-              fullContent += chunkContent;
-
-              res.write(
-                `data: ${JSON.stringify({
-                  content: chunkContent,
-                  provider: "anthropic",
-                })}\n\n`
-              );
-              res.flush(); // Ensure immediate sending
+          for await (const event of stream) {
+            switch (event.type) {
+              case "message_start":
+                // You can log or handle the start of the message if needed
+                break;
+              case "content_block_start":
+                // Handle the start of a new content block if needed
+                break;
+              case "content_block_delta":
+                if (event.delta.type === "text_delta") {
+                  const chunkContent = event.delta.text;
+                  fullContent += chunkContent;
+                  res.write(
+                    `data: ${JSON.stringify({
+                      content: chunkContent,
+                      provider: "anthropic",
+                    })}\n\n`
+                  );
+                  res.flush();
+                }
+                // Handle other delta types (e.g., 'input_json_delta') if needed
+                break;
+              case "content_block_stop":
+                // Handle the end of a content block if needed
+                break;
+              case "message_delta":
+                // Handle message-level updates if needed
+                break;
+              case "message_stop":
+                res.write(
+                  `data: ${JSON.stringify({
+                    content: "[DONE]",
+                    provider: "anthropic",
+                    fullContent: fullContent,
+                  })}\n\n`
+                );
+                res.end();
+                break;
             }
           }
-
-          res.write(
-            `data: ${JSON.stringify({
-              content: "[DONE]",
-              provider: "anthropic",
-              fullContent: fullContent,
-            })}\n\n`
-          );
-          res.end();
 
           artifactManager.addArtifact({
             type: "chat",
@@ -653,6 +723,33 @@ async function initializeApiClients() {
    *   get:
    *     summary: Get user preferences
    *     description: Retrieves the user preferences from the server
+   *     tags: [User Preferences]
+   *     responses:
+   *       200:
+   *         description: Successful response
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/UserPreferences'
+   *       500:
+   *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *   post:
+   *     summary: Save user preferences
+   *     description: Saves the user preferences to the server
+   *     tags: [User Preferences]
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             $ref: '#/components/schemas/UserPreferences'
    *     responses:
    *       200:
    *         description: Successful response
@@ -661,53 +758,26 @@ async function initializeApiClients() {
    *             schema:
    *               type: object
    *               properties:
-   *                 savedMessages:
-   *                   type: array
-   *                   items:
-   *                     type: object
-   *                     properties:
-   *                       name:
-   *                         type: string
-   *                       content:
-   *                         type: string
-   *                 lastUsedModel:
+   *                 message:
    *                   type: string
-   *                 lastUsedSystemMessage:
-   *                   type: string
-   *                 apiKeys:
-   *                   type: object
-   *                   properties:
-   *                     OLLAMA_API_URL:
-   *                       type: string
-   *                     ANTHROPIC_API_KEY:
-   *                       type: string
-   *                     OPENAI_API_KEY:
-   *                       type: string
    *       500:
    *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
    */
   app.get("/api/user-preferences", async (req, res) => {
     try {
       const data = await fs.readFile(USER_PREFERENCES_FILE, "utf8");
       const preferences = JSON.parse(data);
-
-      // Mask API keys for security
-      if (preferences.apiKeys) {
-        Object.keys(preferences.apiKeys).forEach(key => {
-          if (preferences.apiKeys[key]) {
-            preferences.apiKeys[key] = '********';
-          }
-        });
-      }
-
       res.json(preferences);
     } catch (error) {
-      if (error.code === "ENOENT") {
-        res.json({});
-      } else {
-        console.error("Error reading user preferences:", error);
-        res.status(500).json({ error: "Failed to read user preferences" });
-      }
+      console.error("Error reading user preferences:", error);
+      res.status(500).json({ error: "Failed to read user preferences" });
     }
   });
 
@@ -761,29 +831,15 @@ async function initializeApiClients() {
    */
   app.post("/api/user-preferences", async (req, res) => {
     try {
-      const currentPreferences = JSON.parse(await fs.readFile(USER_PREFERENCES_FILE, "utf8"));
-      const newPreferences = req.body;
-  
-      // Preserve existing API keys if new ones are not provided
-      if (newPreferences.apiKeys) {
-        Object.keys(newPreferences.apiKeys).forEach(key => {
-          if (newPreferences.apiKeys[key] === '********') {
-            newPreferences.apiKeys[key] = currentPreferences.apiKeys[key] || '';
-          }
-        });
-      }
-  
+      const preferences = req.body;
       await fs.writeFile(
         USER_PREFERENCES_FILE,
-        JSON.stringify(newPreferences, null, 2)
+        JSON.stringify(preferences, null, 2)
       );
-      res.json({ message: "User preferences saved successfully" });
-  
-      // Reinitialize API clients with new keys
-      await initializeApiClients();
+      res.json({ message: "User preferences updated successfully" });
     } catch (error) {
-      console.error("Error saving user preferences:", error);
-      res.status(500).json({ error: "Failed to save user preferences" });
+      console.error("Error writing user preferences:", error);
+      res.status(500).json({ error: "Failed to update user preferences" });
     }
   });
 
@@ -791,7 +847,7 @@ async function initializeApiClients() {
   function executeUpdateScript() {
     return new Promise((resolve, reject) => {
       const scriptPath = path.join(__dirname, "update_ollama_models.sh");
-      execFile('bash', [scriptPath], (error, stdout, stderr) => {
+      execFile("bash", [scriptPath], (error, stdout, stderr) => {
         if (error) {
           console.error(`Error executing update script: ${error}`);
           reject(error);
@@ -812,13 +868,13 @@ async function initializeApiClients() {
       "Cache-Control": "no-cache, no-transform",
       Connection: "keep-alive",
     });
-  
+
     let count = 0;
     const intervalId = setInterval(() => {
       count += 1;
       res.write(`data: ${JSON.stringify({ message: `Event ${count}` })}\n\n`);
       res.flush();
-  
+
       if (count === 10) {
         clearInterval(intervalId);
         res.write("data: [DONE]\n\n");
@@ -833,6 +889,7 @@ async function initializeApiClients() {
    *   post:
    *     summary: Update Ollama models
    *     description: Triggers the update script for Ollama models
+   *     tags: [Models]
    *     responses:
    *       200:
    *         description: Update successful
@@ -847,6 +904,15 @@ async function initializeApiClients() {
    *                   type: string
    *       500:
    *         description: Server error
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 error:
+   *                   type: string
+   *                 details:
+   *                   type: string
    */
   app.post("/api/update-ollama-models", async (req, res) => {
     try {
@@ -864,10 +930,11 @@ async function initializeApiClients() {
     }
   });
 
+  // Start the server
   const PORT = process.env.PORT || 3001;
-  const HOST = "0.0.0.0"; // This allows connections from any IP
+  const HOST = "0.0.0.0"; // Change this to allow connections from any IP
 
-  app.listen(PORT, HOST, () => {
+  const server = app.listen(PORT, HOST, () => {
     console.log(chalk.green(`Server running on http://${HOST}:${PORT}`));
     console.log(chalk.yellow(`Local access: http://localhost:${PORT}`));
     console.log(
@@ -879,23 +946,24 @@ async function initializeApiClients() {
     Object.keys(networkInterfaces).forEach((interfaceName) => {
       const interfaces = networkInterfaces[interfaceName];
       interfaces.forEach((iface) => {
-        if ("IPv4" !== iface.family || iface.internal !== false) {
-          // Skip over internal (i.e. 127.0.0.1) and non-IPv4 addresses
-          return;
+        if (iface.family === "IPv4" && !iface.internal) {
+          console.log(
+            chalk.cyan(
+              `Network access (${interfaceName}): http://${iface.address}:${PORT}`
+            )
+          );
+          console.log(
+            chalk.magenta(
+              `Swagger UI network access (${interfaceName}): http://${iface.address}:${PORT}/api-docs`
+            )
+          );
         }
-        console.log(
-          chalk.cyan(
-            `Network access (${interfaceName}): http://${iface.address}:${PORT}`
-          )
-        );
-        console.log(
-          chalk.magenta(
-            `Swagger UI network access (${interfaceName}): http://${iface.address}:${PORT}/api-docs`
-          )
-        );
       });
     });
   });
+
+  // Increase server timeout to handle long-running requests
+  server.timeout = 120000; // Set to 2 minutes (120,000 ms)
 
   // Error handling middleware
   app.use((err, req, res, next) => {
@@ -933,4 +1001,9 @@ async function initializeApiClients() {
     // Application specific logging, throwing an error, or other logic here
     process.exit(1); // Exit with failure
   });
-})();
+}
+
+// Invoke the startServer function
+startServer().catch((error) => {
+  console.error("Failed to start the server:", error);
+});
