@@ -130,4 +130,4 @@ For support, please open an issue on the GitHub repository.
 
 ---
 
-Made with ❤️ by the ArtyLLama community.
+© 2024 ArtyLLaMa Research Project
