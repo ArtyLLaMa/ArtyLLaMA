@@ -120,7 +120,8 @@ async function startServer() {
                   %@*                          +@%
                   *%#                          *%#
                        Welcome to ArtyLLaMa!
-    Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
+                  Say hello contact@artyllama.com
+     Report bugs to https://github.com/kroonen/ArtyLLaMa/issues
     `)
   );
 
