@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2, ChevronDown } from 'lucide-react';
-import { ArtifactRenderer } from './ArtifactRenderer'; // Corrected path
-
+import { ArtifactRenderer } from './ArtifactRenderer';
 
 const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
@@ -27,29 +26,40 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   }
 
   return (
-    <div className="w-1/3 flex-shrink-0 border-l border-gray-700 relative bg-gray-800 flex flex-col">
+    <div className="w-1/3 flex-shrink-0 border-l border-gray-200 dark:border-gray-700 relative bg-white dark:bg-gray-800 flex flex-col">
       <div className="absolute top-2 right-2 z-10 flex space-x-2">
-        <button onClick={() => expandArtifact(currentArtifact)} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
+        <button
+          onClick={() => expandArtifact(currentArtifact)}
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
           <Maximize2 size={20} />
         </button>
-        <button onClick={closePreview} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
+        <button
+          onClick={closePreview}
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
           <X size={20} />
         </button>
       </div>
-      <div className="flex justify-between items-center p-2 border-b border-gray-700">
-        <button onClick={prevArtifact} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
+      <div className="flex justify-between items-center p-2 border-b border-gray-200 dark:border-gray-700">
+        <button
+          onClick={prevArtifact}
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
           <ChevronLeft size={20} />
         </button>
         <div className="relative">
-          <button 
-            onClick={() => setIsDropdownOpen(!isDropdownOpen)} 
-            className="flex items-center space-x-1 bg-gray-700 rounded px-2 py-1 hover:bg-gray-600 transition-colors"
+          <button
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center space-x-1 bg-gray-200 dark:bg-gray-700 rounded px-2 py-1 hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
           >
-            <span>Artifact {currentArtifactIndex + 1} of {artifacts.length}</span>
+            <span>
+              Artifact {currentArtifactIndex + 1} of {artifacts.length}
+            </span>
             <ChevronDown size={16} />
           </button>
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 mt-1 w-full bg-gray-700 rounded shadow-lg z-20 max-h-60 overflow-y-auto">
+            <div className="absolute top-full left-0 mt-1 w-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded shadow-lg z-20 max-h-60 overflow-y-auto">
               {artifacts.map((artifact, index) => (
                 <button
                   key={index}
@@ -57,7 +67,7 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
                     setCurrentArtifactIndex(index);
                     setIsDropdownOpen(false);
                   }}
-                  className="w-full text-left px-2 py-1 hover:bg-gray-600 transition-colors"
+                  className="w-full text-left px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                 >
                   {artifact.title || `Artifact ${index + 1}`}
                 </button>
@@ -65,26 +75,35 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
             </div>
           )}
         </div>
-        <button onClick={nextArtifact} className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors">
+        <button
+          onClick={nextArtifact}
+          className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+        >
           <ChevronRight size={20} />
         </button>
       </div>
-      <div className="flex border-b border-gray-700">
+      <div className="flex border-b border-gray-200 dark:border-gray-700">
         <button
           onClick={() => setActiveTab('preview')}
-          className={`flex-1 p-2 ${activeTab === 'preview' ? 'bg-gray-700' : 'bg-gray-800'} hover:bg-gray-700 transition-colors`}
+          className={`flex-1 p-2 ${
+            activeTab === 'preview' ? 'bg-gray-200 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+          } hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors`}
         >
           Preview
         </button>
         <button
           onClick={() => setActiveTab('code')}
-          className={`flex-1 p-2 ${activeTab === 'code' ? 'bg-gray-700' : 'bg-gray-800'} hover:bg-gray-700 transition-colors`}
+          className={`flex-1 p-2 ${
+            activeTab === 'code' ? 'bg-gray-200 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+          } hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors`}
         >
           Code
         </button>
         <button
           onClick={() => setActiveTab('debug')}
-          className={`flex-1 p-2 ${activeTab === 'debug' ? 'bg-gray-700' : 'bg-gray-800'} hover:bg-gray-700 transition-colors`}
+          className={`flex-1 p-2 ${
+            activeTab === 'debug' ? 'bg-gray-200 dark:bg-gray-700' : 'bg-white dark:bg-gray-800'
+          } hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors`}
         >
           Debug Info
         </button>
@@ -97,12 +116,12 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
           </div>
         )}
         {activeTab === 'code' && (
-          <pre className="bg-gray-900 p-2 rounded overflow-auto max-h-[calc(100vh-200px)]">
+          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded overflow-auto max-h-[calc(100vh-200px)]">
             <code>{currentArtifact.content}</code>
           </pre>
         )}
         {activeTab === 'debug' && (
-          <pre className="bg-gray-900 p-2 rounded overflow-auto max-h-[calc(100vh-200px)]">
+          <pre className="bg-gray-100 dark:bg-gray-900 p-2 rounded overflow-auto max-h-[calc(100vh-200px)]">
             {JSON.stringify(currentArtifact, null, 2)}
           </pre>
         )}

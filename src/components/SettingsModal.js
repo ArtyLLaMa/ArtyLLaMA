@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback, useRef, useContext } from 'react';
 import {
   X,
   ExternalLink,
@@ -8,10 +8,11 @@ import {
   Save,
   Plus,
   Key,
-} from "lucide-react";
-import axios from "axios";
+} from 'lucide-react';
+import axios from 'axios';
+import { ThemeContext } from '../context/ThemeContext';
 
-const OLLAMA_API_URL = "http://localhost:11434";
+const OLLAMA_API_URL = 'http://localhost:11434';
 
 const SettingsModal = ({
   toggleSettings,
@@ -21,29 +22,30 @@ const SettingsModal = ({
   setSystemMessage,
   updateAndSaveUserPreferences,
 }) => {
-  const [activeTab, setActiveTab] = useState("System Message");
+  const [activeTab, setActiveTab] = useState('System Message');
   const [savedMessages, setSavedMessages] = useState([]);
   const [localModels, setLocalModels] = useState([]);
-  const [newModelName, setNewModelName] = useState("");
-  const [newMessageName, setNewMessageName] = useState("");
-  const [newMessageContent, setNewMessageContent] = useState("");
+  const [newModelName, setNewModelName] = useState('');
+  const [newMessageName, setNewMessageName] = useState('');
+  const [newMessageContent, setNewMessageContent] = useState('');
   const [modelInfo, setModelInfo] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const [apiKeys, setApiKeys] = useState({
-    OLLAMA_API_URL: "",
-    ANTHROPIC_API_KEY: "",
-    OPENAI_API_KEY: "",
+    OLLAMA_API_URL: '',
+    ANTHROPIC_API_KEY: '',
+    OPENAI_API_KEY: '',
   });
 
-  const tabs = ["System Message", "Model Management", "API Keys", "About"];
+  const tabs = ['System Message', 'Model Management', 'API Keys', 'About'];
 
   const [localSystemMessage, setLocalSystemMessage] = useState(systemMessage);
   const initialRenderRef = useRef(true);
+  const { theme } = useContext(ThemeContext);
 
   const fetchUserPreferences = useCallback(async () => {
     if (initialRenderRef.current) {
       try {
-        const response = await axios.get("/api/user-preferences");
+        const response = await axios.get('/api/user-preferences');
         const data = response.data;
         setSavedMessages(data.savedMessages || []);
         setApiKeys(data.apiKeys || {});
@@ -57,7 +59,7 @@ const SettingsModal = ({
           setLocalSystemMessage(data.lastUsedSystemMessage);
         }
       } catch (error) {
-        console.error("Failed to fetch user preferences:", error);
+        console.error('Failed to fetch user preferences:', error);
       }
       initialRenderRef.current = false;
     }
@@ -86,7 +88,7 @@ const SettingsModal = ({
       const response = await axios.get(`${OLLAMA_API_URL}/api/tags`);
       setLocalModels(response.data.models || []);
     } catch (error) {
-      console.error("Failed to fetch local models:", error);
+      console.error('Failed to fetch local models:', error);
     }
   };
 
@@ -98,8 +100,8 @@ const SettingsModal = ({
       ];
       setSavedMessages(updatedMessages);
       updateAndSaveUserPreferences({ savedMessages: updatedMessages });
-      setNewMessageName("");
-      setNewMessageContent("");
+      setNewMessageName('');
+      setNewMessageContent('');
     }
   };
 
@@ -114,9 +116,9 @@ const SettingsModal = ({
     try {
       await axios.post(`${OLLAMA_API_URL}/api/pull`, { name: newModelName });
       fetchLocalModels();
-      setNewModelName("");
+      setNewModelName('');
     } catch (error) {
-      console.error("Failed to pull model:", error);
+      console.error('Failed to pull model:', error);
     } finally {
       setIsLoading(false);
     }
@@ -129,7 +131,7 @@ const SettingsModal = ({
       });
       fetchLocalModels();
     } catch (error) {
-      console.error("Failed to delete model:", error);
+      console.error('Failed to delete model:', error);
     }
   };
 
@@ -140,7 +142,7 @@ const SettingsModal = ({
       });
       setModelInfo(response.data);
     } catch (error) {
-      console.error("Failed to fetch model info:", error);
+      console.error('Failed to fetch model info:', error);
     }
   };
 
@@ -150,28 +152,36 @@ const SettingsModal = ({
 
   const handleSaveApiKeys = () => {
     updateAndSaveUserPreferences({ apiKeys });
-    alert("API keys saved successfully");
+    alert('API keys saved successfully');
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-gray-800 w-[800px] rounded-lg shadow-xl">
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
+    <div
+      className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+      onClick={toggleSettings}
+    >
+      <div
+        className="bg-white dark:bg-gray-800 w-[800px] rounded-lg shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-bold">Settings</h2>
           <button
             onClick={toggleSettings}
-            className="text-gray-400 hover:text-white"
+            className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white"
           >
             <X size={24} />
           </button>
         </div>
         <div className="flex h-[600px]">
-          <div className="w-1/4 border-r border-gray-700 p-2">
+          <div className="w-1/4 border-r border-gray-200 dark:border-gray-700 p-2">
             {tabs.map((tab) => (
               <button
                 key={tab}
                 className={`w-full text-left p-2 rounded text-sm ${
-                  activeTab === tab ? "bg-gray-700" : "hover:bg-gray-700"
+                  activeTab === tab
+                    ? 'bg-gray-200 dark:bg-gray-700'
+                    : 'hover:bg-gray-200 dark:hover:bg-gray-700'
                 }`}
                 onClick={() => setActiveTab(tab)}
               >
@@ -180,8 +190,8 @@ const SettingsModal = ({
             ))}
           </div>
           <div className="w-3/4 p-4 overflow-y-auto text-sm">
-            {activeTab === "System Message" && (
-              <div className="bg-gray-700 p-3 rounded-lg">
+            {activeTab === 'System Message' && (
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                 <div className="mb-3">
                   <label className="block text-xs font-medium mb-1">
                     Current System Message
@@ -189,12 +199,12 @@ const SettingsModal = ({
                   <textarea
                     value={localSystemMessage}
                     onChange={(e) => setLocalSystemMessage(e.target.value)}
-                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
                     rows="3"
                   />
                   <button
                     onClick={handleSaveSystemMessage}
-                    className="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center"
+                    className="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center hover:bg-blue-600 transition-colors"
                   >
                     <Save size={12} className="mr-1" /> Save Current
                   </button>
@@ -206,19 +216,19 @@ const SettingsModal = ({
                   {savedMessages.map((msg, index) => (
                     <div
                       key={index}
-                      className="mb-2 flex justify-between items-center bg-gray-600 p-2 rounded"
+                      className="mb-2 flex justify-between items-center bg-gray-200 dark:bg-gray-600 p-2 rounded"
                     >
                       <span className="text-xs">{msg.name}</span>
                       <div>
                         <button
                           onClick={() => handleLoadMessage(msg.content)}
-                          className="text-blue-400 hover:text-blue-300 text-xs mr-2"
+                          className="text-blue-500 hover:text-blue-600 text-xs mr-2"
                         >
                           Load
                         </button>
                         <button
                           onClick={() => handleRemoveMessage(index)}
-                          className="text-red-400 hover:text-red-300 text-xs"
+                          className="text-red-500 hover:text-red-600 text-xs"
                         >
                           <Trash size={12} />
                         </button>
@@ -235,25 +245,25 @@ const SettingsModal = ({
                     value={newMessageName}
                     onChange={(e) => setNewMessageName(e.target.value)}
                     placeholder="Message Name"
-                    className="w-full p-2 bg-gray-600 rounded text-xs mb-2"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white mb-2"
                   />
                   <textarea
                     value={newMessageContent}
                     onChange={(e) => setNewMessageContent(e.target.value)}
                     placeholder="Message Content"
-                    className="w-full p-2 bg-gray-600 rounded text-xs mb-2"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white mb-2"
                     rows="3"
                   />
                   <button
                     onClick={handleAddMessage}
-                    className="bg-green-500 text-white px-2 py-1 rounded text-xs flex items-center"
+                    className="bg-green-500 text-white px-2 py-1 rounded text-xs flex items-center hover:bg-green-600 transition-colors"
                   >
                     <Plus size={12} className="mr-1" /> Add Message
                   </button>
                 </div>
               </div>
             )}
-            {activeTab === "Model Management" && (
+            {activeTab === 'Model Management' && (
               <div>
                 <h3 className="text-lg font-semibold mb-4">Model Management</h3>
                 <div className="mb-4">
@@ -264,14 +274,14 @@ const SettingsModal = ({
                       value={newModelName}
                       onChange={(e) => setNewModelName(e.target.value)}
                       placeholder="Enter model name"
-                      className="flex-grow p-2 bg-gray-700 rounded-l text-white"
+                      className="flex-grow p-2 bg-gray-200 dark:bg-gray-700 rounded-l text-gray-800 dark:text-white"
                     />
                     <button
                       onClick={handlePullModel}
                       disabled={isLoading}
                       className="bg-blue-500 text-white px-4 py-2 rounded-r hover:bg-blue-600 transition-colors"
                     >
-                      {isLoading ? "Pulling..." : <Download size={20} />}
+                      {isLoading ? 'Pulling...' : <Download size={20} />}
                     </button>
                   </div>
                 </div>
@@ -280,19 +290,19 @@ const SettingsModal = ({
                   {localModels.map((model) => (
                     <div
                       key={model.name}
-                      className="flex items-center justify-between bg-gray-700 p-2 rounded mb-2"
+                      className="flex items-center justify-between bg-gray-200 dark:bg-gray-700 p-2 rounded mb-2"
                     >
                       <span>{model.name}</span>
                       <div>
                         <button
                           onClick={() => handleShowModelInfo(model.name)}
-                          className="text-blue-400 hover:text-blue-300 mr-2"
+                          className="text-blue-500 hover:text-blue-600 mr-2"
                         >
                           <Info size={16} />
                         </button>
                         <button
                           onClick={() => handleDeleteModel(model.name)}
-                          className="text-red-400 hover:text-red-300"
+                          className="text-red-500 hover:text-red-600"
                         >
                           <Trash size={16} />
                         </button>
@@ -301,7 +311,7 @@ const SettingsModal = ({
                   ))}
                 </div>
                 {modelInfo && (
-                  <div className="mt-4 bg-gray-700 p-4 rounded">
+                  <div className="mt-4 bg-gray-100 dark:bg-gray-700 p-4 rounded">
                     <h4 className="font-medium mb-2">Model Information</h4>
                     <pre className="text-xs overflow-auto max-h-60">
                       {JSON.stringify(modelInfo, null, 2)}
@@ -310,11 +320,9 @@ const SettingsModal = ({
                 )}
               </div>
             )}
-            {activeTab === "API Keys" && (
-              <div className="bg-gray-700 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold mb-2">
-                  API Key Management
-                </h3>
+            {activeTab === 'API Keys' && (
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                <h3 className="text-sm font-semibold mb-2">API Key Management</h3>
                 <div className="mb-3">
                   <label className="block text-xs font-medium mb-1">
                     Ollama API URL:
@@ -324,7 +332,7 @@ const SettingsModal = ({
                     name="OLLAMA_API_URL"
                     value={apiKeys.OLLAMA_API_URL}
                     onChange={handleApiKeyChange}
-                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
                   />
                 </div>
                 <div className="mb-3">
@@ -336,7 +344,7 @@ const SettingsModal = ({
                     name="ANTHROPIC_API_KEY"
                     value={apiKeys.ANTHROPIC_API_KEY}
                     onChange={handleApiKeyChange}
-                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
                   />
                 </div>
                 <div className="mb-3">
@@ -348,21 +356,21 @@ const SettingsModal = ({
                     name="OPENAI_API_KEY"
                     value={apiKeys.OPENAI_API_KEY}
                     onChange={handleApiKeyChange}
-                    className="w-full p-2 bg-gray-600 rounded text-xs"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
                   />
                 </div>
                 <button
                   onClick={handleSaveApiKeys}
-                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center"
+                  className="bg-blue-500 text-white px-2 py-1 rounded text-xs flex items-center hover:bg-blue-600 transition-colors"
                 >
                   <Key size={12} className="mr-1" /> Save API Keys
                 </button>
               </div>
             )}
-            {activeTab === "About" && (
-              <div className="bg-gray-700 p-3 rounded-lg">
+            {activeTab === 'About' && (
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
                 <h3 className="text-sm font-semibold mb-2">About ArtyLLaMa</h3>
-                <p className="text-xs text-gray-300 mb-3">
+                <p className="text-xs text-gray-800 dark:text-gray-300 mb-3">
                   ArtyLLaMa is an AI-powered chat interface that allows users to
                   interact with various language models and generate rich,
                   interactive content.
@@ -371,7 +379,7 @@ const SettingsModal = ({
                   href="https://github.com/kroonen/artyllama"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex items-center text-blue-400 hover:text-blue-300 text-xs"
+                  className="flex items-center text-blue-500 hover:text-blue-600 text-xs"
                 >
                   <ExternalLink size={12} className="mr-1" />
                   View on GitHub

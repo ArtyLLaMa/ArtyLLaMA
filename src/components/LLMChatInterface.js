@@ -4,17 +4,19 @@ import React, {
   useEffect,
   useRef,
   useMemo,
-} from "react";
-import axios from "axios";
-import { Sidebar as SidebarIcon } from "lucide-react";
-import Header from "./Header";
-import ChatArea from "./ChatArea";
-import PreviewPanel from "./PreviewPanel";
-import SettingsModal from "./SettingsModal";
-import ExpandedPreviewModal from "./ExpandedPreviewModal";
-import { useChat } from "./useChat";
-import { parseArtifacts } from "../utils/artifactParser";
-import { debounce } from "lodash";
+  useContext,
+} from 'react';
+import axios from 'axios';
+import { Sidebar as SidebarIcon } from 'lucide-react';
+import Header from './Header';
+import ChatArea from './ChatArea';
+import PreviewPanel from './PreviewPanel';
+import SettingsModal from './SettingsModal';
+import ExpandedPreviewModal from './ExpandedPreviewModal';
+import { useChat } from './useChat';
+import { parseArtifacts } from '../utils/artifactParser';
+import { debounce } from 'lodash';
+import { ThemeContext } from '../context/ThemeContext';
 
 const LLMChatInterface = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -24,15 +26,16 @@ const LLMChatInterface = () => {
   const [totalArtifacts, setTotalArtifacts] = useState(0);
   const [userPreferences, setUserPreferences] = useState(null);
   const userPreferencesFetchedRef = useRef(false);
+  const { theme } = useContext(ThemeContext);
 
   const fetchUserPreferences = useCallback(async () => {
     if (userPreferencesFetchedRef.current) return;
     try {
-      const response = await axios.get("/api/user-preferences");
+      const response = await axios.get('/api/user-preferences');
       setUserPreferences(response.data);
       userPreferencesFetchedRef.current = true;
     } catch (error) {
-      console.error("Failed to fetch user preferences:", error);
+      console.error('Failed to fetch user preferences:', error);
     }
   }, []);
 
@@ -57,7 +60,7 @@ const LLMChatInterface = () => {
   } = useChat(userPreferences);
 
   const processMessageForArtifacts = useCallback((message) => {
-    if (message && message.role === "assistant") {
+    if (message && message.role === 'assistant') {
       const {
         artifacts: parsedArtifacts,
         totalArtifacts: messageTotalArtifacts,
@@ -92,20 +95,14 @@ const LLMChatInterface = () => {
     [handleSubmit]
   );
 
-  const toggleSettings = useCallback(
-    () => setIsSettingsOpen((prev) => !prev),
-    []
-  );
-  const togglePreview = useCallback(
-    () => setIsPreviewOpen((prev) => !prev),
-    []
-  );
+  const toggleSettings = useCallback(() => setIsSettingsOpen((prev) => !prev), []);
+  const togglePreview = useCallback(() => setIsPreviewOpen((prev) => !prev), []);
 
   const saveUserPreferences = async (updatedPreferences) => {
     try {
-      await axios.post("/api/user-preferences", updatedPreferences);
+      await axios.post('/api/user-preferences', updatedPreferences);
     } catch (error) {
-      console.error("Failed to save user preferences:", error);
+      console.error('Failed to save user preferences:', error);
     }
   };
 
@@ -152,7 +149,9 @@ const LLMChatInterface = () => {
   );
 
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-gray-300">
+    <div
+      className={`flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300`}
+    >
       <Header {...headerProps} />
       <div className="flex-grow flex overflow-hidden">
         <div className="flex-grow flex flex-col">

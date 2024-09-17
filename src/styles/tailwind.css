@@ -1,15 +1,24 @@
-@import 'tailwindcss/base';
-@import 'tailwindcss/components';
-@import 'tailwindcss/utilities';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 /* Custom styles */
+
+/* Base styles to handle light and dark modes */
 @layer base {
   body {
+    @apply bg-gray-100 text-gray-800; /* Default light mode styles */
+  }
+
+  /* Dark mode styles */
+  .dark body {
     @apply bg-gray-900 text-gray-300;
   }
 }
 
+/* Custom components and utilities */
 @layer components {
+  /* Hide scrollbar */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -19,188 +28,134 @@
     scrollbar-width: none;
   }
 
+  /* Artifact renderer container */
   .artifact-renderer {
     @apply max-w-full max-h-full overflow-auto;
   }
 
+  /* Artifact content area */
   .artifact-content {
     @apply w-full h-full overflow-auto;
   }
 
-  .artifact-panel {
-    @apply fixed top-0 right-0 h-full bg-gray-800 transition-all duration-400 ease-in-out;
-    width: 33.333333%; /* 1/3 width */
-  }
-
-  .artifact-panel-closed {
-    @apply transform translate-x-full;
-  }
-
-  .artifact-panel-open {
-    @apply transform translate-x-0;
-  }
-
-  .chart-artifact {
-    @apply w-full max-w-2xl mx-auto;
-  }
-  
-  .error-message {
-    @apply text-sm font-medium text-red-500 bg-red-100 border border-red-400 rounded p-2 mb-2;
-  }
-  
-  .raw-content {
-    @apply text-gray-300 whitespace-pre-wrap break-all bg-gray-700 p-2 rounded;
-  }
-  
-  .html-content {
-    @apply w-full max-w-full overflow-x-auto bg-white text-black p-4 rounded;
-  }
-
-  .artifact-preview-container {
-    @apply max-w-full max-h-[calc(100vh-200px)] overflow-auto border border-gray-700 rounded-lg m-2 p-4;
-  }
-
-  .ui-buttons {
-    @apply fixed top-2 right-2 z-50 flex space-x-2;
-  }
-
-  .sidebar {
-    @apply flex-shrink-0 bg-gray-900 border-r border-gray-800 overflow-y-auto transition-all duration-300 ease-in-out;
-  }
-
-  .sidebar-open {
-    @apply w-64;
-  }
-
-  .sidebar-closed {
-    @apply w-12;
-  }
-
-  .chat-area {
-    @apply flex-grow flex flex-col overflow-hidden bg-gray-900;
-  }
-
-  .chat-messages {
-    @apply flex-grow overflow-y-auto p-4 space-y-4;
-  }
-
-  .chat-input-container {
-    @apply flex items-center bg-gray-800 bg-opacity-50 rounded-lg overflow-hidden mx-auto max-w-3xl my-4 px-4 py-2 shadow-lg focus-within:ring-2 focus-within:ring-blue-500 focus-within:ring-opacity-50 transition-all duration-300;
-  }
-
-  .chat-input {
-    @apply flex-1 bg-transparent outline-none text-white placeholder-gray-400 text-sm;
-  }
-
-  .chat-submit-button {
-    @apply p-2 text-gray-400 hover:text-white transition-colors focus:outline-none;
-  }
-
+  /* Modal styles */
   .expanded-modal {
     @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50;
   }
-  
+
   .expanded-modal-content {
-    @apply bg-gray-800 w-11/12 h-5/6 rounded-lg shadow-xl relative flex flex-col;
+    @apply bg-white dark:bg-gray-800 w-11/12 h-5/6 rounded-lg shadow-xl relative flex flex-col;
   }
 
   .expanded-modal-header {
-    @apply flex justify-between items-center p-4 border-b border-gray-700;
+    @apply flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700;
   }
-  
+
   .expanded-modal-body {
     @apply flex-grow overflow-auto p-4;
   }
-  .mermaid-diagram {
-    width: 100%;
-    overflow-x: auto;
+
+  /* Button styles */
+  .button {
+    @apply px-4 py-2 rounded;
+    /* Add transition properties directly */
+    transition-property: background-color, border-color, color, fill, stroke;
+    transition-duration: 200ms;
   }
 
-  .mermaid-svg-container {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 200px;
+  .button-primary {
+    @apply bg-blue-600 text-white hover:bg-blue-700;
   }
 
-  .mermaid-svg-container svg {
-    max-width: 100%;
-    height: auto;
+  .button-secondary {
+    @apply bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600;
   }
 
-  .chat-suggestion-button {
-    @apply flex flex-col items-center justify-center space-y-2 bg-gray-800 hover:bg-gray-700 text-gray-300 rounded-lg p-4 transition-colors w-32 h-32;
-  }
-
-  .chat-suggestion-icon {
-    @apply text-2xl;
-  }
-
-  .chat-suggestion-text {
-    @apply text-xs text-center;
-}
-
-  /* New switch styles */
+  /* Switch styles for the theme toggle */
   .switch {
-    position: relative;
-    display: inline-block;
-    width: 50px;
-    height: 24px;
-}
+    @apply relative inline-block w-10 h-6 align-middle select-none;
+    /* Add transition directly */
+    transition: background-color 200ms ease-in;
+  }
 
   .switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-
-  .slider {
-    position: absolute;
-    cursor: pointer;
+    @apply absolute block w-6 h-6 bg-white border-4 rounded-full appearance-none cursor-pointer;
     top: 0;
     left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #4B5563;
-    transition: .4s;
-    border-radius: 34px;
+    /* Add transition directly */
+    transition: left 200ms ease-in;
   }
 
-  .slider:before {
-    position: absolute;
-    content: "";
-    height: 20px;
-    width: 20px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
+  .switch input:checked {
+    @apply right-0 border-green-400;
+    left: auto;
+  }
 
-  input:checked + .slider {
-    background-color: #10B981;
-}
+  .switch input:checked + .toggle {
+    @apply bg-green-400;
+  }
 
-  input:checked + .slider:before {
-    transform: translateX(26px);
-}
+  .toggle {
+    @apply block overflow-hidden bg-gray-300 dark:bg-gray-600 rounded-full;
+  }
+
+  /* Tooltip styles */
+  .tooltip {
+    @apply relative;
+  }
+
+  .tooltip:hover .tooltip-text {
+    @apply block;
+  }
+
+  .tooltip-text {
+    @apply hidden absolute z-10 p-2 bg-gray-700 text-white text-xs rounded;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  /* Scrollbar styles */
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 100, 100, 0.5);
+    border-radius: 4px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
 }
 
 @layer utilities {
-  .bg-gradient-dark {
-    background: linear-gradient(to bottom, #1a202c, #2d3748);
+  /* Remove custom transition utilities that cause conflicts */
+  /* Removed .transition-colors and .transition-transform */
+
+  /* Flex utilities */
+  .flex-center {
+    @apply flex items-center justify-center;
   }
 
-  .transition-transform {
-    transition-property: transform;
+  /* Max height utilities */
+  .max-h-screen-70 {
+    max-height: 70vh;
   }
 
-  .transition-width {
-    transition-property: width;
+  /* Custom shadows */
+  .shadow-custom {
+    @apply shadow-lg;
   }
 
-  .content-center {
-    @apply flex flex-col justify-center items-center h-full;
+  /* Text overflow */
+  .text-ellipsis {
+    @apply overflow-hidden whitespace-nowrap text-ellipsis;
   }
 }
