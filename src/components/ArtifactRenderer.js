@@ -6,7 +6,8 @@ import TableArtifact from './artifacts/TableArtifact';
 import InteractiveArtifact from './artifacts/InteractiveArtifact';
 import HTMLArtifact from './artifacts/HTMLArtifact';
 import MermaidArtifact from './artifacts/MermaidArtifact';
-import DOMPurify from 'dompurify';
+import GameArtifact from './artifacts/GameArtifact';
+import ThreeJSArtifact from './artifacts/ThreeJSArtifact';
 
 export const ARTIFACT_TYPES = {
   CODE: 'code',
@@ -16,15 +17,14 @@ export const ARTIFACT_TYPES = {
   INTERACTIVE: 'interactive',
   HTML: 'html',
   MERMAID: 'mermaid',
+  GAME: 'game',
+  THREEJS: 'threejs',
 };
 
 export const ArtifactRenderer = ({ artifact }) => {
-  console.log('ArtifactRenderer received:', artifact);
-
   const normalizedType = artifact.type.toLowerCase();
-  
+
   const renderContent = () => {
-    console.log(`Rendering artifact of type: ${normalizedType}`);
     switch (normalizedType) {
       case ARTIFACT_TYPES.CODE:
         return <CodeArtifact content={artifact.content} language={artifact.language} />;
@@ -40,89 +40,14 @@ export const ArtifactRenderer = ({ artifact }) => {
         return <HTMLArtifact content={artifact.content} />;
       case ARTIFACT_TYPES.MERMAID:
         return <MermaidArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.GAME:
+        return <GameArtifact content={artifact.content} />;
+      case ARTIFACT_TYPES.THREEJS:
+        return <ThreeJSArtifact content={artifact.content} />;
       default:
-        console.error('Unknown artifact type:', artifact.type);
         return <div>Unknown artifact type: {artifact.type}</div>;
     }
   };
 
-  return (
-    <div className="artifact-renderer w-full h-full">
-      {renderContent()}
-    </div>
-  );
-}
-
-function detectArtifactType(content) {
-  if (content.trim().startsWith('<svg') || content.match(/\.(png|jpg|jpeg|gif)$/i)) {
-    return ARTIFACT_TYPES.IMAGE;
-  } else if (content.includes('```') || content.match(/^[a-z]+\s*\{/i)) {
-    return ARTIFACT_TYPES.CODE;
-  } else if (content.includes('<table')) {
-    return ARTIFACT_TYPES.TABLE;
-  } else if (content.includes('chart.js') || content.includes('plotly')) {
-    return ARTIFACT_TYPES.CHART;
-  } else if (content.includes('<script') || content.includes('addEventListener')) {
-    return ARTIFACT_TYPES.INTERACTIVE;
-  } else if (content.includes('<html') || content.includes('<body')) {
-    return ARTIFACT_TYPES.HTML;
-  } else if (content.includes('graph LR') || content.includes('graph TD')) {
-    return ARTIFACT_TYPES.MERMAID;
-  }
-  return ARTIFACT_TYPES.HTML; // Default to HTML if no specific type is detected
-}
-
-function sanitizeContent(content, type) {
-    if (type === ARTIFACT_TYPES.HTML || type === ARTIFACT_TYPES.INTERACTIVE) {
-      return DOMPurify.sanitize(content, {
-        ADD_TAGS: ['script'], // Allow scripts for interactive content
-        FORBID_TAGS: ['style'], // Disallow inline styles for security
-        FORBID_ATTR: ['onerror', 'onload'], // Disallow potentially dangerous event handlers
-      });
-    }
-    if (type === ARTIFACT_TYPES.IMAGE && content.trim().startsWith('<svg')) {
-      // For SVG, return as-is to be sanitized in the ImageArtifact component
-      return content;
-    }
-    if (type === ARTIFACT_TYPES.MERMAID) {
-      return content; // No need to sanitize Mermaid content
-    }
-    return content; // For other types, return as-is
-  }
-
-export function parseArtifacts(content) {
-    const artifactRegex = /<antArtifact[^>]*>([\s\S]*?)<\/antArtifact>/gi;
-    const artifacts = [];
-    let match;
-  
-    while ((match = artifactRegex.exec(content)) !== null) {
-      const fullMatch = match[0];
-      const artifactContent = match[1];
-  
-      const identifierMatch = fullMatch.match(/identifier="([^"]*)"/);
-      const titleMatch = fullMatch.match(/title="([^"]*)"/);
-      const typeMatch = fullMatch.match(/type="([^"]*)"/);
-  
-      const identifier = identifierMatch ? identifierMatch[1] : `artifact-${artifacts.length}`;
-      const title = titleMatch ? titleMatch[1] : 'Untitled Artifact';
-      const specifiedType = typeMatch ? typeMatch[1].toLowerCase() : null;
-  
-      const detectedType = specifiedType || detectArtifactType(artifactContent);
-      
-      // Don't sanitize SVG content here, leave it for the ImageArtifact component
-      const finalContent = detectedType.toLowerCase() === ARTIFACT_TYPES.IMAGE && artifactContent.trim().startsWith('<svg')
-        ? artifactContent
-        : sanitizeContent(artifactContent, detectedType);
-  
-      artifacts.push({
-        identifier,
-        title,
-        type: detectedType,
-        content: finalContent,
-      });
-    }
-  
-    console.log('Parsed artifacts:', artifacts); // Debug log
-  
-    return artifacts;
-}
+  return <div className="artifact-renderer">{renderContent()}</div>;
+};

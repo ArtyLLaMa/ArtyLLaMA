@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Code, Eye, FileText, Minimize2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
-import { ArtifactRenderer } from './ArtifactRenderer';
+import { ArtifactRenderer } from './ArtifactRenderer'; // Corrected path
 
 const ExpandedPreviewModal = ({ toggleExpand, artifact }) => {
   const [activeTab, setActiveTab] = useState('preview');

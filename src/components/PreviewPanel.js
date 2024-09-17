@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, ChevronLeft, ChevronRight, Maximize2, ChevronDown } from 'lucide-react';
-import { ArtifactRenderer } from './ArtifactRenderer';
+import { ArtifactRenderer } from './ArtifactRenderer'; // Corrected path
+
 
 const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   const [currentArtifactIndex, setCurrentArtifactIndex] = useState(0);
