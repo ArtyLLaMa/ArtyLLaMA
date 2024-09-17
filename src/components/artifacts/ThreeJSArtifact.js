@@ -8,6 +8,11 @@ const ThreeJSArtifact = ({ content }) => {
   useEffect(() => {
     let scene, camera, renderer, animationId;
 
+    if (!mountRef.current) {
+      setError("Mount point is not available.");
+      return;
+    }
+
     try {
       // Initialize Scene
       scene = new THREE.Scene();
@@ -66,16 +71,12 @@ const ThreeJSArtifact = ({ content }) => {
         });
       }
 
-      // Handle Camera Controls (Optional)
-      // You can integrate OrbitControls for better interaction
-      // const controls = new THREE.OrbitControls(camera, renderer.domElement);
-
       // Animation Loop
       const animate = () => {
         animationId = requestAnimationFrame(animate);
         // Optional: Add rotation or other animations
-        // scene.rotation.x += 0.01;
-        // scene.rotation.y += 0.01;
+        scene.rotation.x += 0.01;
+        scene.rotation.y += 0.01;
         renderer.render(scene, camera);
       };
       animate();
@@ -89,7 +90,9 @@ const ThreeJSArtifact = ({ content }) => {
       if (animationId) cancelAnimationFrame(animationId);
       if (renderer) {
         renderer.dispose();
-        mountRef.current.removeChild(renderer.domElement);
+        if (mountRef.current && renderer.domElement.parentNode === mountRef.current) {
+          mountRef.current.removeChild(renderer.domElement);
+        }
       }
     };
   }, [content]);

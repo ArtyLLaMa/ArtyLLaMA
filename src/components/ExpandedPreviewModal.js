@@ -1,4 +1,3 @@
-// ./src/components/ExpandedPreviewModal.js
 import React, { useState } from 'react';
 import { Code, Eye, FileText, Minimize2 } from 'lucide-react';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';

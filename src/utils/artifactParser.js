@@ -1,4 +1,3 @@
-// ./src/components/utils/artifactParser.js
 import { ARTIFACT_TYPES } from '../components/ArtifactRenderer';
 import DOMPurify from 'dompurify';
 

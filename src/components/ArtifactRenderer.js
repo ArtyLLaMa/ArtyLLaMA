@@ -1,4 +1,3 @@
-// ./src/components/ArtifactRenderer.js
 import React from 'react';
 import CodeArtifact from './artifacts/CodeArtifact';
 import ImageArtifact from './artifacts/ImageArtifact';
