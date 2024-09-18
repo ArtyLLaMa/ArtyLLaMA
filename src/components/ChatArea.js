@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useContext } from 'react';
-import { Send, Lightbulb, Scroll, BookOpen, Coffee } from 'lucide-react';
+import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
 
 const ChatArea = ({
@@ -20,10 +20,10 @@ const ChatArea = ({
   }, [messages, streamingMessage]);
 
   const suggestions = [
-    { icon: <Lightbulb size={20} />, text: 'Write a story in my favorite genre' },
-    { icon: <Coffee size={20} />, text: 'Plan a relaxing day' },
-    { icon: <Scroll size={20} />, text: 'Summarize a long document' },
-    { icon: <BookOpen size={20} />, text: 'Study vocabulary' },
+    { icon: <ChartSpline size={20} />, text: 'Create a flowchart that visualizes the steps involved in deploying a web application using Docker.' },
+    { icon: <Gamepad2 size={20} />, text: 'Create a simple Pong game where players control paddles to bounce the ball back and forth.' },
+    { icon: <ChartBarBig size={20} />, text: 'Create a bar chart comparing the performance of different JavaScript frameworks (React, Angular, Vue) based on their bundle size and speed.' },
+    { icon: <Atom size={20} />, text: 'Build an interactive simulation of a bouncing ball affected by gravity.' },
   ];
 
   return (

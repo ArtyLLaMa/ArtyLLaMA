@@ -33,7 +33,7 @@ export const useChat = (userPreferences) => {
 
   const placeholders = useMemo(
     () => [
-      'Generate a chart to visualize the latest AI model performance trends.',
+      'Create a flowchart that visualizes the steps involved in deploying a web application using Docker.',
       'Create a table to compare AI frameworks based on speed and accuracy.',
       'Render a diagram of the neural network architecture for deeper analysis.',
       'Generate a bar chart to display the most popular programming languages of 2024.',

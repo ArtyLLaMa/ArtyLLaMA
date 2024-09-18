@@ -9,7 +9,7 @@ const GameArtifact = ({ content }) => {
       // Create iframe
       const iframe = document.createElement('iframe');
       iframe.style.width = '100%';
-      iframe.style.height = '400px';
+      iframe.style.height = '600px';
       iframe.style.border = 'none';
       iframe.setAttribute('sandbox', 'allow-scripts allow-same-origin');
 
