@@ -1,5 +1,6 @@
 # ArtyLLama: AI-Powered Chat Interface for Open-Source LLMs
 
+<img width="1251" alt="screenshot" src="https://github.com/user-attachments/assets/b349d342-1478-4ca0-aa71-0ce1d63feef1">
 <img width="1347" alt="Screenshot 2024-09-16 at 8 02 59 AM" src="https://github.com/user-attachments/assets/6493cc10-561c-4e1c-b5a3-41924cb83ecd">
 
 
