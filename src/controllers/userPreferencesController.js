@@ -1,8 +1,8 @@
-const { getUserPreferencesData, saveUserPreferencesData } = require('../utils/userPreferencesManager');
+const { getUserPreferences, saveUserPreferences } = require('../utils/userPreferencesManager');
 
 exports.getUserPreferences = async (req, res) => {
   try {
-    const preferences = await getUserPreferencesData();
+    const preferences = await getUserPreferences();
     res.json(preferences);
   } catch (error) {
     console.error('Error reading user preferences:', error);
@@ -13,7 +13,7 @@ exports.getUserPreferences = async (req, res) => {
 exports.saveUserPreferences = async (req, res) => {
   try {
     const preferences = req.body;
-    await saveUserPreferencesData(preferences);
+    await saveUserPreferences(preferences);
     res.json({ message: 'User preferences updated successfully' });
   } catch (error) {
     console.error('Error writing user preferences:', error);

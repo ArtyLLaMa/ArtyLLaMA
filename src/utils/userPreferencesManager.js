@@ -1,7 +1,7 @@
 const fs = require('fs').promises;
 const path = require('path');
 
-const USER_PREFERENCES_FILE = path.join(__dirname, '..', '..', 'user_preferences.json');
+const USER_PREFERENCES_FILE = path.join(process.cwd(), 'user_preferences.json');
 
 const defaultPreferences = {
   savedMessages: [],
@@ -29,17 +29,17 @@ exports.initializeUserPreferences = async () => {
   }
 };
 
-exports.getUserPreferencesData = async () => {
+exports.getUserPreferences = async () => {
   try {
     const data = await fs.readFile(USER_PREFERENCES_FILE, 'utf8');
     return JSON.parse(data);
   } catch (error) {
     console.error('Error reading user preferences:', error);
-    throw error;
+    return defaultPreferences;
   }
 };
 
-exports.saveUserPreferencesData = async (preferences) => {
+exports.saveUserPreferences = async (preferences) => {
   try {
     await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(preferences, null, 2));
   } catch (error) {

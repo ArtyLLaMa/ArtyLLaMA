@@ -1,15 +1,9 @@
-const { OpenAI } = require('openai');
-const { OPENAI_API_KEY } = require('../config/environment');
-
-let openai;
-
-if (OPENAI_API_KEY) {
-  openai = new OpenAI({ apiKey: OPENAI_API_KEY });
-}
+const { getOpenAIClient } = require('../utils/apiClientInitializer');
 
 exports.processOpenAIChat = async (model, messages, onChunk) => {
+  const openai = getOpenAIClient();
   if (!openai) {
-    throw new Error('OpenAI API key is not configured.');
+    throw new Error('OpenAI client is not initialized. Check your API key in user preferences.');
   }
 
   const completion = await openai.chat.completions.create({
