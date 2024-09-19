@@ -1,4 +1,4 @@
-const { override, addWebpackPlugin, overrideDevServer } = require('customize-cra');
+const { override, addWebpackPlugin, overrideDevServer, addBabelPreset, addBabelPlugin } = require('customize-cra');
 const webpack = require('webpack');
 
 const disableEslintPlugin = (config) => {
@@ -26,9 +26,29 @@ const devServerConfig = () => config => {
 module.exports = {
   webpack: override(
     disableEslintPlugin,
+    addBabelPreset('@babel/preset-react'),
+    addBabelPlugin('@babel/plugin-proposal-class-properties'),
+    addBabelPlugin('@babel/plugin-transform-runtime'),
+    addBabelPlugin('@babel/plugin-transform-class-static-block'),
+    addBabelPlugin('@babel/plugin-transform-private-methods'),
     (config) => {
       // Disable deprecation warnings
       config.ignoreWarnings = [/DEP_/];
+      // Ensure that Babel processes JS files
+      config.module.rules[1].oneOf.forEach(rule => {
+        if (rule.loader && rule.loader.includes('babel-loader')) {
+          rule.options.presets = [
+            ['@babel/preset-env', { modules: false }],
+            '@babel/preset-react'
+          ];
+          rule.options.plugins = [
+            '@babel/plugin-proposal-class-properties',
+            '@babel/plugin-transform-runtime',
+            '@babel/plugin-transform-class-static-block',
+            '@babel/plugin-transform-private-methods'
+          ];
+        }
+      });
       return config;
     }
   ),

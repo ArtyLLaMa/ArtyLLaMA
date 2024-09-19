@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { v4: uuidv4 } = require('uuid');
+
 class ArtifactManager {
   constructor() {
     this.sessionId = `AI_Artifacts_${new Date().toISOString().replace(/[:T.]/g, '')}`;
@@ -12,7 +13,6 @@ class ArtifactManager {
     this.databaseFile = path.join(this.databaseDir, 'artificial_creations.json');
     this.summaryFile = path.join(this.baseDir, 'session_summary.txt');
     this.artifactCount = 0;
-
     this.initializeFolders();
   }
 
@@ -22,7 +22,6 @@ class ArtifactManager {
         fs.mkdirSync(dir, { recursive: true });
       }
     });
-
     if (!fs.existsSync(this.databaseFile)) {
       fs.writeFileSync(this.databaseFile, JSON.stringify([], null, 2));
     }
@@ -32,11 +31,11 @@ class ArtifactManager {
     this.artifactCount++;
     const artifactId = `Artifact_${this.artifactCount.toString().padStart(3, '0')}`;
     const timestamp = new Date().toISOString();
-
+    
     // Save artifact
     const artifactPath = path.join(this.artifactsDir, artifactId);
     fs.writeFileSync(artifactPath, content);
-
+    
     // Save metadata
     const metadata = {
       artifact_id: artifactId,
@@ -47,7 +46,7 @@ class ArtifactManager {
     };
     const metadataPath = path.join(this.metadataDir, `${artifactId}.json`);
     fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-
+    
     // Update database
     const databaseEntry = {
       artifact_id: artifactId,
@@ -62,10 +61,10 @@ class ArtifactManager {
     const database = JSON.parse(fs.readFileSync(this.databaseFile, 'utf-8'));
     database.push(databaseEntry);
     fs.writeFileSync(this.databaseFile, JSON.stringify(database, null, 2));
-
+    
     // Generate preview (placeholder implementation)
     this.generatePreview(artifactId, content, type);
-
+    
     return artifactId;
   }
 
@@ -87,10 +86,10 @@ class ArtifactManager {
 
   generateSessionSummary() {
     const summary = `
-      Session ID: ${this.sessionId}
-      Total artifacts: ${this.artifactCount}
-      Timestamp: ${new Date().toISOString()}
-    `;
+Session ID: ${this.sessionId}
+Total artifacts: ${this.artifactCount}
+Timestamp: ${new Date().toISOString()}
+`;
     fs.writeFileSync(this.summaryFile, summary);
     console.log(`Session summary saved to ${this.summaryFile}`);
   }
@@ -105,7 +104,7 @@ class ArtifactManager {
       const svgContent = svgMatch[0];
       this.saveSvgArtifact(svgContent, model, provider);
     }
-
+    
     // Always save the full content as a regular artifact
     this.saveArtifact(content, type, model, provider);
   }
@@ -114,11 +113,11 @@ class ArtifactManager {
     this.artifactCount++;
     const artifactId = `SVG_${this.artifactCount.toString().padStart(3, '0')}`;
     const timestamp = new Date().toISOString();
-
+    
     // Save SVG artifact
     const artifactPath = path.join(this.artifactsDir, `${artifactId}.svg`);
     fs.writeFileSync(artifactPath, svgContent);
-
+    
     // Save metadata
     const metadata = {
       artifact_id: artifactId,
@@ -130,7 +129,7 @@ class ArtifactManager {
     };
     const metadataPath = path.join(this.metadataDir, `${artifactId}.json`);
     fs.writeFileSync(metadataPath, JSON.stringify(metadata, null, 2));
-
+    
     // Update database
     const databaseEntry = {
       artifact_id: artifactId,
@@ -146,9 +145,10 @@ class ArtifactManager {
     const database = JSON.parse(fs.readFileSync(this.databaseFile, 'utf-8'));
     database.push(databaseEntry);
     fs.writeFileSync(this.databaseFile, JSON.stringify(database, null, 2));
-
+    
     console.log(`SVG artifact saved: ${artifactPath}`);
   }
+
   getProviderFromModel(model) {
     if (model.startsWith('claude-')) {
       return 'anthropic';
@@ -159,4 +159,5 @@ class ArtifactManager {
     }
   }
 }
-module.exports = ArtifactManager;
+
+module.exports = { ArtifactManager };
