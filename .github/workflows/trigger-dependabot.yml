@@ -1,14 +1,14 @@
-name: Trigger Dependabot
+name: Manual Dependabot Trigger
 
 on:
-  workflow_dispatch: # Allows manual triggering via GitHub UI
+  workflow_dispatch:
 
 jobs:
-  run-dependabot:
+  trigger-dependabot:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Run Dependabot
         uses: dependabot/fetch-metadata@v1
