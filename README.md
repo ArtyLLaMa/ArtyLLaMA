@@ -1,6 +1,7 @@
 # ArtyLLama: AI-Powered Creative Platform for Interactive Content
 
 ![ArtyLLama Demo](artyllamaDemo.gif)
+<img width="1840" alt="image" src="https://github.com/user-attachments/assets/2f03a0ba-dbc7-4c1c-adbb-a64c0339195f">
 
 Welcome to **ArtyLLama**, a groundbreaking React-based platform that revolutionizes the way you create interactive content. By seamlessly integrating with multiple AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama empowers users to harness the power of Large Language Models (LLMs) to generate, iterate, and perfect their creative visions—all through natural language.
 
