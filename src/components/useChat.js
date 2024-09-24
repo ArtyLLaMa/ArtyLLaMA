@@ -1,19 +1,16 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback } from "react";
 
 export const useChat = (userPreferences) => {
   const [messages, setMessages] = useState([]);
-  const [inputValue, setInputValue] = useState('');
-  const [placeholderText, setPlaceholderText] = useState('');
+  const [inputValue, setInputValue] = useState("");
+  const [placeholderText, setPlaceholderText] = useState("");
   const [error, setError] = useState(null);
-  const [selectedModel, setSelectedModel] = useState('');
+  const [selectedModel, setSelectedModel] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [systemMessage, setSystemMessage] = useState(
-    'You are a helpful AI assistant.'
-  );
+  const [systemMessage, setSystemMessage] = useState("");
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
   const [streamingMessage, setStreamingMessage] = useState(null);
 
-  // Update selectedModel and systemMessage when userPreferences change
   useEffect(() => {
     if (userPreferences) {
       if (
@@ -33,10 +30,10 @@ export const useChat = (userPreferences) => {
 
   const placeholders = useMemo(
     () => [
-      'Generate a chart to visualize the latest AI model performance trends.',
-      'Create a table to compare AI frameworks based on speed and accuracy.',
-      'Render a diagram of the neural network architecture for deeper analysis.',
-      'Generate a bar chart to display the most popular programming languages of 2024.',
+      "Generate a chart to visualize the latest AI model performance trends.",
+      "Create a table to compare AI frameworks based on speed and accuracy.",
+      "Render a diagram of the neural network architecture for deeper analysis.",
+      "Generate a bar chart to display the most popular programming languages of 2024.",
     ],
     []
   );
@@ -58,17 +55,17 @@ export const useChat = (userPreferences) => {
       e.preventDefault();
       if (!inputValue.trim()) return;
       if (!selectedModel) {
-        setError('Please select a model before sending a message.');
+        setError("Please select a model before sending a message.");
         return;
       }
 
       const userMessage = {
-        role: 'user',
+        role: "user",
         content: inputValue.trim(),
         timestamp: new Date(),
       };
       setMessages((prevMessages) => [...prevMessages, userMessage]);
-      setInputValue('');
+      setInputValue("");
       setIsLoading(true);
       setError(null);
 
@@ -76,13 +73,21 @@ export const useChat = (userPreferences) => {
       let totalTokens = 0;
 
       try {
-        const response = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const token = localStorage.getItem("token");
+        if (!token) {
+          throw new Error("User not authenticated. Please log in.");
+        }
+
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
           body: JSON.stringify({
             model: selectedModel,
             messages: [
-              { role: 'system', content: systemMessage },
+              { role: "system", content: systemMessage },
               ...messages,
               userMessage,
             ],
@@ -103,8 +108,8 @@ export const useChat = (userPreferences) => {
           }
         }
 
-        const contentType = response.headers.get('Content-Type') || '';
-        if (!contentType.includes('text/event-stream')) {
+        const contentType = response.headers.get("Content-Type") || "";
+        if (!contentType.includes("text/event-stream")) {
           const errorText = await response.text();
           throw new Error(
             `Expected text/event-stream but received ${contentType}: ${errorText}`
@@ -112,15 +117,15 @@ export const useChat = (userPreferences) => {
         }
 
         const reader = response.body.getReader();
-        const decoder = new TextDecoder('utf-8');
+        const decoder = new TextDecoder("utf-8");
         let aiMessage = {
-          role: 'assistant',
-          content: '',
+          role: "assistant",
+          content: "",
           timestamp: new Date(),
         };
         setStreamingMessage(aiMessage);
 
-        let buffer = '';
+        let buffer = "";
 
         while (true) {
           const { value, done } = await reader.read();
@@ -128,16 +133,16 @@ export const useChat = (userPreferences) => {
 
           buffer += decoder.decode(value, { stream: true });
 
-          let lines = buffer.split('\n');
-          buffer = lines.pop(); // Save incomplete line for next chunk
+          let lines = buffer.split("\n");
+          buffer = lines.pop();
 
           for (const line of lines) {
-            if (line.trim() === '') continue;
+            if (line.trim() === "") continue;
 
-            if (line.startsWith('data: ')) {
+            if (line.startsWith("data: ")) {
               const data = line.slice(6).trim();
 
-              if (data === '[DONE]') {
+              if (data === "[DONE]") {
                 setStreamingMessage(null);
                 setMessages((prevMessages) => [...prevMessages, aiMessage]);
                 break;
@@ -151,7 +156,7 @@ export const useChat = (userPreferences) => {
                   setMessages((prevMessages) => [
                     ...prevMessages,
                     {
-                      role: 'error',
+                      role: "error",
                       content: parsedData.message,
                       timestamp: new Date(),
                     },
@@ -164,7 +169,7 @@ export const useChat = (userPreferences) => {
 
                   setStreamingMessage({ ...aiMessage });
 
-                  totalTokens += parsedData.content.split(' ').length;
+                  totalTokens += parsedData.content.split(" ").length;
 
                   const currentTime = Date.now();
                   const elapsedTime = (currentTime - startTime) / 1000;
@@ -180,17 +185,17 @@ export const useChat = (userPreferences) => {
                   break;
                 }
               } catch (parseError) {
-                console.error('Error parsing JSON:', parseError);
+                console.error("Error parsing JSON:", parseError);
               }
             }
           }
         }
       } catch (error) {
-        console.error('Detailed error:', error);
+        console.error("Detailed error:", error);
         setError(`Failed to get a response from the AI. ${error.message}`);
         setMessages((prevMessages) => [
           ...prevMessages,
-          { role: 'error', content: error.message, timestamp: new Date() },
+          { role: "error", content: error.message, timestamp: new Date() },
         ]);
       } finally {
         setIsLoading(false);
@@ -203,6 +208,7 @@ export const useChat = (userPreferences) => {
   const chatState = useMemo(
     () => ({
       messages,
+      setMessages,
       streamingMessage,
       inputValue,
       setInputValue,
