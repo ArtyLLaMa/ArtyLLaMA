@@ -1,0 +1,22 @@
+name: Trigger Dependabot
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run-dependabot:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Run Dependabot
+        uses: dependabot/fetch-metadata@v1
+        with:
+          version: 2
+          package-ecosystem: "npm"
+          directory: "/"
+          schedule:
+            interval: "daily"
+          open-pull-requests-limit: 25
+          versioning-strategy: "auto"
