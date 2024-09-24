@@ -2,6 +2,7 @@ import React, { useState, useCallback, useEffect, useRef, useContext } from 'rea
 import { Settings, ChevronDown, Sun, Moon } from 'lucide-react';
 import axios from 'axios';
 import { ThemeContext } from '../context/ThemeContext';
+import LogoutButton from './LogoutButton'; // Import LogoutButton
 
 const Header = React.memo(
   ({ selectedModel, setSelectedModel, stats, toggleSettings }) => {
@@ -103,9 +104,11 @@ const Header = React.memo(
           <button
             onClick={toggleSettings}
             className="p-2 bg-gray-200 dark:bg-gray-700 rounded-full hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+            title="Settings"
           >
             <Settings size={20} />
           </button>
+          <LogoutButton /> {/* Added LogoutButton here */}
         </div>
       </header>
     );

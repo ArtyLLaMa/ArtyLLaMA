@@ -5,7 +5,7 @@ const CHROMA_DB_API_URL =
 
 let collectionIdCache = {};
 
-const ensureCollectionExists = async (collectionName) => {
+const ensureCollectionExists = async (collectionName, embeddingDimension) => {
   if (collectionIdCache[collectionName]) {
     return collectionIdCache[collectionName];
   }
@@ -13,18 +13,28 @@ const ensureCollectionExists = async (collectionName) => {
     const response = await axios.get(`${CHROMA_DB_API_URL}/api/v1/collections`);
     const collections = response.data;
 
+    // Find collection with matching name
     let collection = collections.find(
       (collection) => collection.name === collectionName
     );
 
     if (!collection) {
+      // Create a new collection with the specified embedding size
       const createResponse = await axios.post(
         `${CHROMA_DB_API_URL}/api/v1/collections`,
         {
           name: collectionName,
+          embedding_size: embeddingDimension,
         }
       );
       collection = createResponse.data;
+    } else {
+      // Check if embedding sizes match
+      if (collection.embedding_size !== embeddingDimension) {
+        throw new Error(
+          `Existing collection '${collectionName}' has embedding size ${collection.embedding_size}, expected ${embeddingDimension}.`
+        );
+      }
     }
 
     collectionIdCache[collectionName] = collection.id;
@@ -43,10 +53,15 @@ exports.addDocument = async (
   documentId,
   content,
   embedding,
-  metadata
+  metadata,
+  embeddingDimension
 ) => {
+  let collectionId; // Declare collectionId here
   try {
-    const collectionId = await ensureCollectionExists(collectionName);
+    collectionId = await ensureCollectionExists(
+      collectionName,
+      embeddingDimension
+    );
 
     const response = await axios.post(
       `${CHROMA_DB_API_URL}/api/v1/collections/${collectionId}/add`,
@@ -71,10 +86,15 @@ exports.queryDocuments = async (
   collectionName,
   queryEmbedding,
   nResults,
-  filters
+  filters,
+  embeddingDimension
 ) => {
+  let collectionId; // Declare collectionId here
   try {
-    const collectionId = await ensureCollectionExists(collectionName);
+    collectionId = await ensureCollectionExists(
+      collectionName,
+      embeddingDimension
+    );
 
     const response = await axios.post(
       `${CHROMA_DB_API_URL}/api/v1/collections/${collectionId}/query`,
@@ -94,9 +114,17 @@ exports.queryDocuments = async (
   }
 };
 
-exports.getDocuments = async (collectionName, filters) => {
+exports.getDocuments = async (
+  collectionName,
+  filters,
+  embeddingDimension
+) => {
+  let collectionId; // Declare collectionId here
   try {
-    const collectionId = await ensureCollectionExists(collectionName);
+    collectionId = await ensureCollectionExists(
+      collectionName,
+      embeddingDimension
+    );
 
     const response = await axios.post(
       `${CHROMA_DB_API_URL}/api/v1/collections/${collectionId}/get`,
@@ -117,10 +145,15 @@ exports.getDocuments = async (collectionName, filters) => {
 exports.updateDocumentMetadata = async (
   collectionName,
   documentId,
-  metadata
+  metadata,
+  embeddingDimension
 ) => {
+  let collectionId; // Declare collectionId here
   try {
-    const collectionId = await ensureCollectionExists(collectionName);
+    collectionId = await ensureCollectionExists(
+      collectionName,
+      embeddingDimension
+    );
 
     const response = await axios.post(
       `${CHROMA_DB_API_URL}/api/v1/collections/${collectionId}/update`,

@@ -14,3 +14,4 @@ combined.log
 !components/artifacts
 !components/artifacts/*
 user_preferences.json
+database.sqlite

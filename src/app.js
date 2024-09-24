@@ -1,19 +1,18 @@
-import React, { useState, useEffect } from "react";
-import LLMChatInterface from "./components/LLMChatInterface";
-import Login from "./components/Login";
-import { ThemeProvider } from "./context/ThemeContext";
+import React, { useState, useContext } from 'react';
+import LLMChatInterface from './components/LLMChatInterface';
+import Login from './components/Login';
+import RegisterForm from './components/RegisterForm';
+import { ThemeProvider } from './context/ThemeContext';
+import { AuthContext } from './context/AuthContext'; // Import AuthContext
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setIsAuthenticated(!!token);
-  }, []);
-
-  const handleLoginSuccess = () => {
-    setIsAuthenticated(true);
+  const toggleForm = () => {
+    setShowRegister(!showRegister);
   };
+
+  const { isAuthenticated } = useContext(AuthContext);
 
   return (
     <ThemeProvider>
@@ -21,8 +20,10 @@ function App() {
         <main className="flex-grow overflow-hidden">
           {isAuthenticated ? (
             <LLMChatInterface />
+          ) : showRegister ? (
+            <RegisterForm onToggleForm={toggleForm} />
           ) : (
-            <Login onLoginSuccess={handleLoginSuccess} />
+            <Login onToggleForm={toggleForm} />
           )}
         </main>
       </div>
