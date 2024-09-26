@@ -1,25 +1,29 @@
-MIT License
-
+ArtyLLaMa Research Project License
 Copyright (c) 2024 Robin Kroonen
+Permissions
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+Non-Commercial Use: This software and associated documentation files (the "Software") may be used for non-commercial purposes without restriction, including the rights to use, copy, modify, merge, and distribute copies of the Software.
+Contributions: Contributions to the Software are welcome and encouraged. By contributing, you agree to license your contributions under the terms of this license.
+Academic and Research Use: The Software may be used freely for academic and research purposes, provided proper attribution is given.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+Restrictions
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Commercial Use: Any commercial use, including but not limited to selling, licensing, or using the Software as part of a commercial product or service, requires explicit written permission from Robin Kroonen.
+No Sublicensing: The rights granted under this license cannot be sublicensed or transferred without explicit written permission from Robin Kroonen.
+No Patent Use: This license does not grant any rights to use any patents that may be associated with the Software.
 
-Attribution: You must give appropriate credit to the original author,
-Robin Kroonen, and link to the project page at kroonen.ai - Any derived work
-must also cite the original repository at https://github.com/kroonen/ArtyLLama
+Conditions
+
+Attribution: Any use, modification, or distribution of the Software must include prominent attribution to Robin Kroonen and must link to the project page at kroonen.ai. Additionally, any derived work must cite the original repository at https://github.com/kroonen/ArtyLLama.
+Preservation of Notice: The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+No Endorsement: Neither the name of Robin Kroonen nor the names of the project's contributors may be used to endorse or promote products derived from this Software without specific prior written permission.
+
+Disclaimer
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+Additional Terms
+
+Private Research Protection: Any private research, algorithms, or methodologies developed by Robin Kroonen as part of the ArtyLLaMa Research Project that are not explicitly made public in the Software remain the sole intellectual property of Robin Kroonen and are not licensed under these terms.
+Modifications: Robin Kroonen reserves the right to modify the terms of this license for future versions of the Software. Such modifications will not be retroactive.
+Termination: This license automatically terminates if you fail to comply with its terms and conditions. Upon termination, you must cease all use, distribution, and possession of the Software.
+
+For inquiries regarding commercial use or other permissions not granted by this license, please contact Robin Kroonen at robin@kroonen.ai
