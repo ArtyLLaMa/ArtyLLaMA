@@ -19,7 +19,7 @@
     "dotenv": "^16.4.5",
     "express": "^5.0.0",
     "express-rate-limit": "^7.4.0",
-    "lucide-react": "^0.445.0",
+    "lucide-react": "^0.446.0",
     "mermaid": "^11.2.1",
     "openai": "^4.63.0",
     "phaser": "^3.85.2",
