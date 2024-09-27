@@ -159,3 +159,10 @@
     @apply overflow-hidden whitespace-nowrap text-ellipsis;
   }
 }
+
+/* Sidebar styles */
+@layer components {
+  .sidebar {
+    @apply fixed inset-y-0 left-0 transform transition-transform duration-300 ease-in-out z-30 w-80 bg-white dark:bg-gray-800 shadow-lg;
+  }
+}

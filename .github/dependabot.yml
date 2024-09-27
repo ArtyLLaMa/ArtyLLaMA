@@ -7,12 +7,13 @@ updates:
       interval: daily
     open-pull-requests-limit: 25
     versioning-strategy: auto
+    target-branch: "feature/chromaDB-embedding"
     allow:
       - dependency-type: "direct"
       - dependency-type: "indirect"
     ignore:
       - dependency-name: "react"
-        versions: ["17.x", "18.x"] # Ignore major React updates to avoid breaking changes
+        versions: ["17.x", "18.x"]
       - dependency-name: "react-dom"
         versions: ["17.x", "18.x"]
     commit-message:

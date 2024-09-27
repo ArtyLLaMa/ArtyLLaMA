@@ -12,6 +12,7 @@ const defaultPreferences = {
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
   },
+  embeddingModel: 'OpenAI',
 };
 
 exports.initializeUserPreferences = async () => {
@@ -21,7 +22,10 @@ exports.initializeUserPreferences = async () => {
   } catch (error) {
     if (error.code === 'ENOENT') {
       console.log('Creating default user preferences file...');
-      await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(defaultPreferences, null, 2));
+      await fs.writeFile(
+        USER_PREFERENCES_FILE,
+        JSON.stringify(defaultPreferences, null, 2)
+      );
       console.log('Default user preferences file created successfully.');
     } else {
       console.error('Error checking user preferences file:', error);
@@ -32,7 +36,9 @@ exports.initializeUserPreferences = async () => {
 exports.getUserPreferences = async () => {
   try {
     const data = await fs.readFile(USER_PREFERENCES_FILE, 'utf8');
-    return JSON.parse(data);
+    const preferences = JSON.parse(data);
+    // Ensure all default properties are present
+    return { ...defaultPreferences, ...preferences };
   } catch (error) {
     console.error('Error reading user preferences:', error);
     return defaultPreferences;
@@ -41,7 +47,10 @@ exports.getUserPreferences = async () => {
 
 exports.saveUserPreferences = async (preferences) => {
   try {
-    await fs.writeFile(USER_PREFERENCES_FILE, JSON.stringify(preferences, null, 2));
+    await fs.writeFile(
+      USER_PREFERENCES_FILE,
+      JSON.stringify(preferences, null, 2)
+    );
   } catch (error) {
     console.error('Error writing user preferences:', error);
     throw error;

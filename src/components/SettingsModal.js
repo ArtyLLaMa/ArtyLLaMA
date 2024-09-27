@@ -35,8 +35,9 @@ const SettingsModal = ({
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
   });
+  const [embeddingModel, setEmbeddingModel] = useState('OpenAI'); // New state
 
-  const tabs = ['System Message', 'Model Management', 'API Keys', 'About'];
+  const tabs = ['System Message', 'Model Management', 'API Keys', 'Embedding Settings', 'About']; // Added 'Embedding Settings'
 
   const [localSystemMessage, setLocalSystemMessage] = useState(systemMessage);
   const initialRenderRef = useRef(true);
@@ -49,6 +50,7 @@ const SettingsModal = ({
         const data = response.data;
         setSavedMessages(data.savedMessages || []);
         setApiKeys(data.apiKeys || {});
+        setEmbeddingModel(data.embeddingModel || 'OpenAI'); // Load saved embedding model
         if (data.lastUsedModel && data.lastUsedModel !== selectedModel) {
           setSelectedModel(data.lastUsedModel);
         }
@@ -80,6 +82,7 @@ const SettingsModal = ({
       lastUsedSystemMessage: localSystemMessage,
       savedMessages,
       apiKeys,
+      embeddingModel,
     });
   };
 
@@ -99,7 +102,7 @@ const SettingsModal = ({
         { name: newMessageName, content: newMessageContent },
       ];
       setSavedMessages(updatedMessages);
-      updateAndSaveUserPreferences({ savedMessages: updatedMessages });
+      updateAndSaveUserPreferences({ savedMessages: updatedMessages, embeddingModel });
       setNewMessageName('');
       setNewMessageContent('');
     }
@@ -108,7 +111,7 @@ const SettingsModal = ({
   const handleRemoveMessage = (index) => {
     const updatedMessages = savedMessages.filter((_, i) => i !== index);
     setSavedMessages(updatedMessages);
-    updateAndSaveUserPreferences({ savedMessages: updatedMessages });
+    updateAndSaveUserPreferences({ savedMessages: updatedMessages, embeddingModel });
   };
 
   const handlePullModel = async () => {
@@ -151,8 +154,13 @@ const SettingsModal = ({
   };
 
   const handleSaveApiKeys = () => {
-    updateAndSaveUserPreferences({ apiKeys });
+    updateAndSaveUserPreferences({ apiKeys, embeddingModel });
     alert('API keys saved successfully');
+  };
+
+  const handleEmbeddingModelChange = (e) => {
+    setEmbeddingModel(e.target.value);
+    updateAndSaveUserPreferences({ embeddingModel: e.target.value });
   };
 
   return (
@@ -365,6 +373,34 @@ const SettingsModal = ({
                 >
                   <Key size={12} className="mr-1" /> Save API Keys
                 </button>
+              </div>
+            )}
+            {activeTab === 'Embedding Settings' && (
+              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
+                <h3 className="text-sm font-semibold mb-2">Embedding Settings</h3>
+                <div className="mb-3">
+                  <label className="block text-xs font-medium mb-1">
+                    Select Embedding Model:
+                  </label>
+                  <select
+                    value={embeddingModel}
+                    onChange={handleEmbeddingModelChange}
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
+                  >
+                    <option value="OpenAI">OpenAI Embedding</option>
+                    <option value="Ollama">Ollama Embedding</option>
+                  </select>
+                </div>
+                {embeddingModel === 'OpenAI' && (
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                    Make sure your OpenAI API Key is set in the API Keys tab.
+                  </div>
+                )}
+                {embeddingModel === 'Ollama' && (
+                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
+                    Ensure that the Ollama embedding model is available locally.
+                  </div>
+                )}
               </div>
             )}
             {activeTab === 'About' && (

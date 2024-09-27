@@ -1,20 +1,23 @@
 const { processAnthropicChat } = require('./anthropicService');
-const { processOpenAIChat } = require('./openaiService');
-const { processOllamaChat } = require('./ollamaService');
+const { processOpenAIChat, generateOpenAIEmbedding } = require('./openaiService');
+const { processOllamaChat, generateOllamaEmbedding } = require('./ollamaService');
 const { getUserPreferences } = require('../utils/userPreferencesManager');
+const chromaDBService = require('./chromaDBService');
+const { v4: uuidv4 } = require('uuid');
 
 exports.processChat = async (model, messages, onChunk) => {
   try {
     const userPreferences = await getUserPreferences();
-    const systemMessage = userPreferences.lastUsedSystemMessage || "You are Arty, a helpful assistant specialized in creating rich, interactive content for web applications. When responding with special content types, use `<antArtifact>` tags to encapsulate them. The available artifact types are:\n\n1. **Code**: For programming language snippets. Specify the language for proper syntax highlighting.\n2. **Image**: For SVG content or image URLs.\n3. **Chart**: For creating data visualizations using Chart.js syntax.\n4. **Table**: For structured data in table format.\n5. **Interactive**: For content with JavaScript interactivity.\n6. **HTML**: For general HTML content, including Bootstrap-styled pages.\n7. **Mermaid**: For creating diagrams and flowcharts using Mermaid syntax.\n8. **React**: For React component code.\n9. **Game**: For embedding simple browser-based games using HTML, CSS, and JavaScript.\n10. **ThreeJS**: For creating 3D visualizations and simulations using Three.js.\n\n### Format Your Artifacts Like This:\n\n```xml\n<antArtifact identifier=\"unique-id\" type=\"artifact-type\" language=\"specific-language\" title=\"Descriptive Title\">\n{\n  // Artifact-specific content\n}\n</antArtifact>\n```\n\nGuidelines for Specific Artifact Types:\n\n1. Code:\n- Description: Provide programming language snippets.\n- Specification: Always specify the language for proper syntax highlighting.\n- Example:\n```xml\n<antArtifact identifier=\"code-example\" type=\"code\" language=\"javascript\" title=\"Hello World\">\nconsole.log('Hello, World!');\n</antArtifact>\n```\n\n2. Image:\n- Description: Provide SVG content or image URLs.\n- Example:\n```xml\n<antArtifact identifier=\"image-example\" type=\"image\" title=\"Sample SVG\">\n<svg width=\"100\" height=\"100\">\n  <circle cx=\"50\" cy=\"50\" r=\"40\" stroke=\"green\" stroke-width=\"4\" fill=\"yellow\" />\n</svg>\n</antArtifact>\n```\n\n3. Chart:\n- Description: Create data visualizations using Chart.js syntax.\n- Example:\n```xml\n<antArtifact identifier=\"chart-example\" type=\"chart\" title=\"Sales Data\">\n{\n  \"type\": \"bar\",\n  \"data\": {\n    \"labels\": [\"January\", \"February\", \"March\"],\n    \"datasets\": [{\n      \"label\": \"Sales\",\n      \"data\": [65, 59, 80],\n      \"backgroundColor\": \"rgba(75, 192, 192, 0.6)\"\n    }]\n  },\n  \"options\": {\n    \"responsive\": true,\n    \"plugins\": {\n      \"title\": {\n        \"display\": true,\n        \"text\": \"Monthly Sales Data\"\n      }\n    }\n  }\n}\n</antArtifact>\n```\n\n4. Table:\n- Description: Provide data as a JSON object with headers and data properties.\n- Example:\n```xml\n<antArtifact identifier=\"table-example\" type=\"table\" title=\"Employee Data\">\n{\n  \"headers\": [\"Name\", \"Age\", \"Role\"],\n  \"data\": [\n    {\"Name\": \"Alice\", \"Age\": 30, \"Role\": \"Developer\"},\n    {\"Name\": \"Bob\", \"Age\": 28, \"Role\": \"Designer\"}\n  ]\n}\n</antArtifact>\n```\n\n5. Interactive:\n- Description: Include content with JavaScript interactivity.\n- Example:\n```xml\n<antArtifact identifier=\"interactive-example\" type=\"interactive\" title=\"Interactive Button\">\n  <button id=\"myButton\">Click Me</button>\n    <script>\n      document.getElementById('myButton').addEventListener('click', () => {\n      alert('Button Clicked!');\n      });\n    </script>\n</antArtifact>\n```\n\n6. HTML:\n- Description: Include full HTML pages with Bootstrap. External resources are allowed from https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/.\n- Example:\n```xml\n<antArtifact identifier=\"html-example\" type=\"html\" title=\"Bootstrap Card\">\n<!DOCTYPE html>\n<html>\n <head>\n   <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css\" rel=\"stylesheet\">\n </head>\n <body>\n   <div class=\"card\" style=\"width: 18rem;\">\n     <img src=\"...\" class=\"card-img-top\" alt=\"...\">\n     <div class=\"card-body\">\n       <h5 class=\"card-title\">Card Title</h5>\n       <p class=\"card-text\">Some quick example text.</p>\n       <a href=\"#\" class=\"btn btn-primary\">Go somewhere</a>\n     </div>\n   </div>\n </body>\n</html>\n</antArtifact>\n```\n\n7. Mermaid:\n- Description: Provide Mermaid diagram syntax directly.\n- Example:\n```xml\n<antArtifact identifier=\"mermaid-example\" type=\"mermaid\" title=\"Flowchart\">\n  graph TD\n    A[Start] --> B{Is it?}\n    B -- Yes --> C[OK]\n    C --> D[Rethink]\n    D --> B\n    B -- No --> E[End]\n</antArtifact>\n```\n\n8. React:\n- Description: Provide the full React component code, including imports.\n- Example:\n```xml\n<antArtifact identifier=\"react-example\" type=\"react\" language=\"javascript\" title=\"HelloWorld Component\">\nimport React from 'react';\n\nconst HelloWorld = () => {\n  return <h1>Hello, World!</h1>;\n};\n\nexport default HelloWorld;\n</antArtifact>\n```\n\n9. Game:\n- Description: Embed simple browser-based games using HTML, CSS, and JavaScript. Use sandboxed iframes to ensure security.\n- Example:\n```xml\n<antArtifact identifier=\"game-example\" type=\"game\" title=\"Simple Pong Game\">\n<!DOCTYPE html>\n<html>\n<head>\n  <style>\n    canvas { border: 1px solid #000; }\n  </style>\n</head>\n<body>\n  <canvas id=\"pongCanvas\" width=\"600\" height=\"400\"></canvas>\n  <script>\n    const canvas = document.getElementById('pongCanvas');\n    const ctx = canvas.getContext('2d');\n    // Simple Pong game implementation\n    // [Game code here]\n  </script>\n</body>\n</html>\n</antArtifact>\n```\n\n10. ThreeJS:\n- Description: Create 3D visualizations and simulations using Three.js. Provide the necessary JSON data or JavaScript code to set up the scene.\n- Example:\n```xml\n<antArtifact identifier=\"threejs-example\" type=\"threejs\" title=\"Rotating Cube\">\n{\n  \"scene\": {\n    \"background\": \"#ffffff\"\n  },\n  \"camera\": {\n    \"position\": { \"x\": 0, \"y\": 0, \"z\": 5 }\n  },\n  \"objects\": [\n    {\n      \"type\": \"BoxGeometry\",\n      \"width\": 1,\n      \"height\": 1,\n      \"depth\": 1,\n      \"material\": {\n        \"type\": \"MeshBasicMaterial\",\n        \"color\": \"#00ff00\"\n      },\n      \"position\": { \"x\": 0, \"y\": 0, \"z\": 0 }\n    }\n  ],\n  \"animation\": {\n    \"rotate\": { \"x\": 0.01, \"y\": 0.01 }\n  }\n}\n</antArtifact>\n```\n\n### Additional Guidelines:\n- Combining Artifacts: You may combine multiple artifacts in your responses to create comprehensive and engaging content. For example, a threejs artifact can be accompanied by a chart artifact that displays related data.\n- Self-Contained Artifacts: Ensure each artifact is self-contained and complete. Do not include any code or tags outside of the artifact content itself.\n- Proper Syntax and Formatting: Always use proper syntax and formatting within artifacts to ensure they render correctly. This is crucial for complex artifacts like game and threejs.\n- Use of Unique Identifiers: Each <antArtifact> should have a unique identifier to prevent conflicts and ensure proper rendering.\n- Descriptive Titles: Provide descriptive titles for each artifact to make it clear what the content represents.\n\n### Security Measures:\n- For game artifacts, always use sandboxed iframes to prevent malicious code execution.\n- Sanitize any user-generated content to prevent Cross-Site Scripting (XSS) attacks.\n- Performance Optimization: For resource-intensive artifacts like threejs, ensure efficient code to maintain optimal performance and responsiveness.\n- Fallbacks: In cases where the artifact content is invalid or fails to render, provide meaningful error messages and fallback content to maintain a smooth user experience.\n\n```xml\n<antArtifact identifier=\"combined-example\" type=\"threejs\" title=\"3D Data Visualization\">\n{\n  \"scene\": {\n    \"background\": \"#eeeeee\"\n  },\n  \"camera\": {\n    \"position\": { \"x\": 0, \"y\": 5, \"z\": 10 }\n  },\n  \"objects\": [\n    {\n      \"type\": \"SphereGeometry\",\n      \"radius\": 1,\n      \"widthSegments\": 32,\n      \"heightSegments\": 32,\n      \"material\": {\n        \"type\": \"MeshPhongMaterial\",\n        \"color\": \"#ff0000\"\n      },\n      \"position\": { \"x\": -3, \"y\": 0, \"z\": 0 }\n    },\n    {\n      \"type\": \"BoxGeometry\",\n      \"width\": 2,\n      \"height\": 2,\n      \"depth\": 2,\n      \"material\": {\n        \"type\": \"MeshBasicMaterial\",\n        \"color\": \"#0000ff\"\n      },\n      \"position\": { \"x\": 3, \"y\": 0, \"z\": 0 }\n    }\n  ],\n  \"lights\": [\n    {\n      \"type\": \"AmbientLight\",\n      \"color\": \"#404040\"\n    },\n    {\n      \"type\": \"PointLight\",\n      \"color\": \"#ffffff\",\n      \"position\": { \"x\": 10, \"y\": 10, \"z\": 10 }\n    }\n  ],\n  \"animation\": {\n    \"rotate\": { \"x\": 0.005, \"y\": 0.005 }\n  }\n}\n</antArtifact>\n\n<antArtifact identifier=\"chart-related-data\" type=\"chart\" title=\"Object Distribution\">\n{\n  \"type\": \"pie\",\n  \"data\": {\n    \"labels\": [\"Spheres\", \"Boxes\"],\n    \"datasets\": [{\n      \"label\": \"Object Count\",\n      \"data\": [5, 3],\n      \"backgroundColor\": [\"#ff0000\", \"#0000ff\"]\n    }]\n  },\n  \"options\": {\n    \"responsive\": true,\n    \"plugins\": {\n      \"title\": {\n        \"display\": true,\n        \"text\": \"3D Object Distribution\"\n      }\n    }\n  }\n}\n</antArtifact>\n```";
+    const systemMessage =
+      userPreferences.lastUsedSystemMessage ||
+      'You are Arty, a helpful assistant, now with embedding!';
 
-    // Ensure messages only contain expected fields
-    const cleanedMessages = messages.map(msg => ({
+    const cleanedMessages = messages.map((msg) => ({
       role: msg.role,
-      content: msg.content
+      content: msg.content,
     }));
 
-    if (!cleanedMessages.some(msg => msg.role === 'system')) {
+    if (!cleanedMessages.some((msg) => msg.role === 'system')) {
       cleanedMessages.unshift({ role: 'system', content: systemMessage });
     }
 
@@ -27,6 +30,156 @@ exports.processChat = async (model, messages, onChunk) => {
     }
   } catch (error) {
     console.error('Error in processChat:', error);
+    throw error;
+  }
+};
+
+exports.storeMessageWithEmbedding = async (
+  userId,
+  sessionId,
+  messageContent,
+  role
+) => {
+  try {
+    const userPreferences = await getUserPreferences();
+    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
+
+    let embedding = null;
+    let embeddingDimension = null;
+
+    if (embeddingModel === 'OpenAI') {
+      embedding = await generateOpenAIEmbedding(messageContent);
+      embeddingDimension = 1536; // OpenAI embedding dimension
+    } else if (embeddingModel === 'Ollama') {
+      embedding = await generateOllamaEmbedding(messageContent);
+      embeddingDimension = 1024; // Ollama embedding dimension
+    } else {
+      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
+    }
+
+    // Include embedding dimension in the collection name
+    const collectionName = `chat_history_${embeddingDimension}`;
+
+    const documentId = uuidv4();
+    const metadata = {
+      userId,
+      sessionId,
+      role,
+      timestamp: new Date().toISOString(),
+      bookmarked: false,
+    };
+
+    await chromaDBService.addDocument(
+      collectionName,
+      documentId,
+      messageContent,
+      embedding,
+      metadata,
+      embeddingDimension // Pass embedding dimension
+    );
+
+    return documentId;
+  } catch (error) {
+    console.error('Error storing message with embedding:', error);
+    throw error;
+  }
+};
+
+exports.getChatHistory = async (userId, sessionId) => {
+  try {
+    const userPreferences = await getUserPreferences();
+    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
+
+    let embeddingDimension = null;
+
+    if (embeddingModel === 'OpenAI') {
+      embeddingDimension = 1536;
+    } else if (embeddingModel === 'Ollama') {
+      embeddingDimension = 1024;
+    } else {
+      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
+    }
+
+    // Include embedding dimension in the collection name
+    const collectionName = `chat_history_${embeddingDimension}`;
+
+    const filters = { userId };
+    if (sessionId) {
+      filters.sessionId = sessionId;
+    }
+
+    const data = await chromaDBService.getDocuments(
+      collectionName,
+      filters,
+      embeddingDimension
+    );
+
+    const messages = data.documents.map((content, index) => ({
+      id: data.ids[index],
+      content,
+      timestamp: data.metadatas[index]?.timestamp || new Date().toISOString(),
+      bookmarked: data.metadatas[index]?.bookmarked || false,
+      sessionId: data.metadatas[index]?.sessionId || null,
+      role: data.metadatas[index]?.role || 'user',
+    }));
+
+    messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+    return messages;
+  } catch (error) {
+    console.error('Error retrieving chat history:', error);
+    throw error;
+  }
+};
+
+exports.searchChatHistory = async (userId, query, topK = 10) => {
+  try {
+    const userPreferences = await getUserPreferences();
+    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
+
+    let queryEmbedding = null;
+    let embeddingDimension = null;
+
+    if (embeddingModel === 'OpenAI') {
+      queryEmbedding = await generateOpenAIEmbedding(query);
+      embeddingDimension = 1536;
+    } else if (embeddingModel === 'Ollama') {
+      queryEmbedding = await generateOllamaEmbedding(query);
+      embeddingDimension = 1024;
+    } else {
+      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
+    }
+
+    // Include embedding dimension in the collection name
+    const collectionName = `chat_history_${embeddingDimension}`;
+
+    const filters = { userId };
+
+    const data = await chromaDBService.queryDocuments(
+      collectionName,
+      queryEmbedding,
+      topK,
+      filters,
+      embeddingDimension // Pass embedding dimension
+    );
+
+    const documents = data.documents[0];
+    const metadatas = data.metadatas[0];
+    const distances = data.distances[0];
+
+    const results = documents.map((content, index) => ({
+      content,
+      distance: distances[index],
+      id: data.ids[0][index],
+      timestamp: metadatas[index]?.timestamp || new Date().toISOString(),
+      bookmarked: metadatas[index]?.bookmarked || false,
+      sessionId: metadatas[index]?.sessionId || null,
+      role: metadatas[index]?.role || 'user',
+    }));
+
+    return results;
+  } catch (error) {
+    console.error('Error searching chat history:', error);
     throw error;
   }
 };
