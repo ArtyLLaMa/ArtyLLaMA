@@ -19,20 +19,20 @@ const ensureCollectionExists = async (collectionName, embeddingDimension) => {
     );
 
     if (!collection) {
-      // Create a new collection with the specified embedding size
+      // Create a new collection with the specified dimension
       const createResponse = await axios.post(
         `${CHROMA_DB_API_URL}/api/v1/collections`,
         {
           name: collectionName,
-          embedding_size: embeddingDimension,
+          dimension: embeddingDimension, // Use 'dimension' instead of 'embedding_size'
         }
       );
       collection = createResponse.data;
     } else {
-      // Check if embedding sizes match
-      if (collection.embedding_size !== embeddingDimension) {
+      // Check if dimensions match
+      if (collection.dimension !== embeddingDimension) {
         throw new Error(
-          `Existing collection '${collectionName}' has embedding size ${collection.embedding_size}, expected ${embeddingDimension}.`
+          `Existing collection '${collectionName}' has dimension ${collection.dimension}, expected ${embeddingDimension}.`
         );
       }
     }
@@ -56,7 +56,7 @@ exports.addDocument = async (
   metadata,
   embeddingDimension
 ) => {
-  let collectionId; // Declare collectionId here
+  let collectionId;
   try {
     collectionId = await ensureCollectionExists(
       collectionName,
@@ -89,7 +89,7 @@ exports.queryDocuments = async (
   filters,
   embeddingDimension
 ) => {
-  let collectionId; // Declare collectionId here
+  let collectionId;
   try {
     collectionId = await ensureCollectionExists(
       collectionName,
@@ -119,7 +119,7 @@ exports.getDocuments = async (
   filters,
   embeddingDimension
 ) => {
-  let collectionId; // Declare collectionId here
+  let collectionId;
   try {
     collectionId = await ensureCollectionExists(
       collectionName,
@@ -148,7 +148,7 @@ exports.updateDocumentMetadata = async (
   metadata,
   embeddingDimension
 ) => {
-  let collectionId; // Declare collectionId here
+  let collectionId;
   try {
     collectionId = await ensureCollectionExists(
       collectionName,

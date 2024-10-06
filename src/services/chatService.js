@@ -4,6 +4,8 @@ const { processOllamaChat, generateOllamaEmbedding } = require('./ollamaService'
 const { getUserPreferences } = require('../utils/userPreferencesManager');
 const chromaDBService = require('./chromaDBService');
 const { v4: uuidv4 } = require('uuid');
+const Session = require('../models/sessionModel');
+const Message = require('../models/messageModel');
 
 exports.processChat = async (model, messages, onChunk) => {
   try {
@@ -57,8 +59,8 @@ exports.storeMessageWithEmbedding = async (
       throw new Error(`Unsupported embedding model: ${embeddingModel}`);
     }
 
-    // Include embedding dimension in the collection name
-    const collectionName = `chat_history_${embeddingDimension}`;
+    // Use a collection per user and embedding model for isolation
+    const collectionName = `chat_history_${userId}_${embeddingModel.toLowerCase()}`;
 
     const documentId = uuidv4();
     const metadata = {
@@ -75,7 +77,7 @@ exports.storeMessageWithEmbedding = async (
       messageContent,
       embedding,
       metadata,
-      embeddingDimension // Pass embedding dimension
+      embeddingDimension
     );
 
     return documentId;
@@ -87,43 +89,16 @@ exports.storeMessageWithEmbedding = async (
 
 exports.getChatHistory = async (userId, sessionId) => {
   try {
-    const userPreferences = await getUserPreferences();
-    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
-
-    let embeddingDimension = null;
-
-    if (embeddingModel === 'OpenAI') {
-      embeddingDimension = 1536;
-    } else if (embeddingModel === 'Ollama') {
-      embeddingDimension = 1024;
-    } else {
-      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
-    }
-
-    // Include embedding dimension in the collection name
-    const collectionName = `chat_history_${embeddingDimension}`;
-
-    const filters = { userId };
+    // Fetch messages from the database
+    const whereClause = { userId };
     if (sessionId) {
-      filters.sessionId = sessionId;
+      whereClause.sessionId = sessionId;
     }
 
-    const data = await chromaDBService.getDocuments(
-      collectionName,
-      filters,
-      embeddingDimension
-    );
-
-    const messages = data.documents.map((content, index) => ({
-      id: data.ids[index],
-      content,
-      timestamp: data.metadatas[index]?.timestamp || new Date().toISOString(),
-      bookmarked: data.metadatas[index]?.bookmarked || false,
-      sessionId: data.metadatas[index]?.sessionId || null,
-      role: data.metadatas[index]?.role || 'user',
-    }));
-
-    messages.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+    const messages = await Message.findAll({
+      where: whereClause,
+      order: [['timestamp', 'ASC']],
+    });
 
     return messages;
   } catch (error) {
@@ -150,17 +125,19 @@ exports.searchChatHistory = async (userId, query, topK = 10) => {
       throw new Error(`Unsupported embedding model: ${embeddingModel}`);
     }
 
-    // Include embedding dimension in the collection name
-    const collectionName = `chat_history_${embeddingDimension}`;
+    // Use the collection corresponding to the embedding model
+    const collectionName = `chat_history_${userId}_${embeddingModel.toLowerCase()}`;
 
-    const filters = { userId };
+    const filters = {
+      userId,
+    };
 
     const data = await chromaDBService.queryDocuments(
       collectionName,
       queryEmbedding,
       topK,
       filters,
-      embeddingDimension // Pass embedding dimension
+      embeddingDimension
     );
 
     const documents = data.documents[0];

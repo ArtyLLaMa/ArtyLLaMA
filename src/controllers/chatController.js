@@ -1,3 +1,5 @@
+const Session = require("../models/sessionModel");
+const Message = require("../models/messageModel");
 const {
   processChat,
   storeMessageWithEmbedding,
@@ -7,6 +9,79 @@ const {
 const { ArtifactManager } = require("../utils/ArtifactManager");
 
 const artifactManager = new ArtifactManager();
+
+exports.createSession = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const session = await Session.create({ userId });
+    res.status(201).json({ session });
+  } catch (error) {
+    console.error("Error creating session:", error);
+    res.status(500).json({ error: "Failed to create session." });
+  }
+};
+
+exports.getSessions = async (req, res) => {
+  const userId = req.user.id;
+  try {
+    const sessions = await Session.findAll({
+      where: { userId },
+      order: [["createdAt", "DESC"]],
+    });
+    res.status(200).json({ sessions });
+  } catch (error) {
+    console.error("Error fetching sessions:", error);
+    res.status(500).json({ error: "Failed to fetch sessions." });
+  }
+};
+
+exports.getSessionMessages = async (req, res) => {
+  const userId = req.user.id;
+  const { sessionId } = req.params;
+  try {
+    const session = await Session.findOne({ where: { id: sessionId, userId } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found." });
+    }
+
+    const messages = await Message.findAll({
+      where: { sessionId },
+      order: [["createdAt", "ASC"]],
+    });
+    res.status(200).json({ messages });
+  } catch (error) {
+    console.error("Error fetching messages:", error);
+    res.status(500).json({ error: "Failed to fetch messages." });
+  }
+};
+
+exports.addMessage = async (req, res) => {
+  const userId = req.user.id;
+  const { sessionId } = req.params;
+  const { content, role } = req.body;
+
+  try {
+    const session = await Session.findOne({ where: { id: sessionId, userId } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found." });
+    }
+
+    const message = await Message.create({
+      sessionId,
+      userId,
+      content,
+      role,
+    });
+
+    // Store embedding (optional)
+    await storeMessageWithEmbedding(userId, sessionId, content, role);
+
+    res.status(201).json({ message });
+  } catch (error) {
+    console.error("Error adding message:", error);
+    res.status(500).json({ error: "Failed to add message." });
+  }
+};
 
 exports.chat = async (req, res) => {
   const { model, messages, sessionId } = req.body;
@@ -24,15 +99,25 @@ exports.chat = async (req, res) => {
 
     let fullContent = "";
     const userId = req.user.id;
-    const currentSessionId = sessionId || "default_session";
+
+    // Ensure session exists
+    let session = await Session.findOne({ where: { id: sessionId, userId } });
+    if (!session) {
+      session = await Session.create({ userId });
+    }
 
     const lastUserMessage = messages[messages.length - 1];
-    await storeMessageWithEmbedding(
+
+    // Save user's message
+    const userMessage = await Message.create({
+      sessionId: session.id,
       userId,
-      currentSessionId,
-      lastUserMessage.content,
-      lastUserMessage.role
-    );
+      content: lastUserMessage.content,
+      role: "user",
+    });
+
+    // Store embedding
+    await storeMessageWithEmbedding(userId, session.id, lastUserMessage.content, "user");
 
     await processChat(model, messages, async (chunk, provider) => {
       if (chunk === "[DONE]") {
@@ -45,12 +130,16 @@ exports.chat = async (req, res) => {
         );
         res.end();
 
-        await storeMessageWithEmbedding(
+        // Save assistant's reply
+        const assistantMessage = await Message.create({
+          sessionId: session.id,
           userId,
-          currentSessionId,
-          fullContent,
-          "assistant"
-        );
+          content: fullContent,
+          role: "assistant",
+        });
+
+        // Store embedding
+        await storeMessageWithEmbedding(userId, session.id, fullContent, "assistant");
 
         artifactManager.addArtifact({
           type: "chat",
@@ -81,6 +170,18 @@ exports.chat = async (req, res) => {
       );
       res.end();
     }
+  }
+};
+
+exports.semanticSearch = async (req, res) => {
+  const userId = req.user.id;
+  const { query, topK } = req.body;
+  try {
+    const results = await searchChatHistory(userId, query, topK);
+    res.status(200).json({ results });
+  } catch (error) {
+    console.error("Error performing semantic search:", error);
+    res.status(500).json({ error: "Semantic search failed." });
   }
 };
 
@@ -115,3 +216,4 @@ exports.searchChatHistory = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+

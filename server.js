@@ -42,7 +42,7 @@ app.use(errorHandler);
 async function startServer() {
   try {
     // Initialize SQLite database
-    await sequelize.sync(); // Sync models with the database
+    await sequelize.sync({ alter: true }); // Sync models with the database
     console.log(chalk.green('Connected to SQLite database'));
 
     await initializeUserPreferences();

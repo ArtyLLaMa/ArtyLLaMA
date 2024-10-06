@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
+import axiosInstance from "../utils/axiosInstance";
 
-export const useChat = (userPreferences) => {
+export const useChat = (userPreferences, currentSessionId) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [placeholderText, setPlaceholderText] = useState("");
@@ -50,12 +51,36 @@ export const useChat = (userPreferences) => {
     return () => clearInterval(interval);
   }, [placeholders]);
 
+  // Fetch messages when currentSessionId changes
+  useEffect(() => {
+    if (currentSessionId) {
+      const fetchMessages = async () => {
+        try {
+          const response = await axiosInstance.get(
+            `/chat/sessions/${currentSessionId}/messages`
+          );
+          setMessages(response.data.messages);
+        } catch (error) {
+          console.error("Error fetching messages:", error);
+          setError("Failed to load messages for the selected session.");
+        }
+      };
+      fetchMessages();
+    } else {
+      setMessages([]);
+    }
+  }, [currentSessionId]);
+
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
       if (!inputValue.trim()) return;
       if (!selectedModel) {
         setError("Please select a model before sending a message.");
+        return;
+      }
+      if (!currentSessionId) {
+        setError("Please select or create a chat session.");
         return;
       }
 
@@ -91,6 +116,7 @@ export const useChat = (userPreferences) => {
               ...messages,
               userMessage,
             ],
+            sessionId: currentSessionId,
           }),
         });
 
@@ -202,7 +228,7 @@ export const useChat = (userPreferences) => {
         setStreamingMessage(null);
       }
     },
-    [inputValue, messages, selectedModel, systemMessage]
+    [inputValue, messages, selectedModel, systemMessage, currentSessionId]
   );
 
   const chatState = useMemo(

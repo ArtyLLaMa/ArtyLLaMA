@@ -13,7 +13,7 @@ import ChatArea from "./ChatArea";
 import PreviewPanel from "./PreviewPanel";
 import SettingsModal from "./SettingsModal";
 import ExpandedPreviewModal from "./ExpandedPreviewModal";
-import ChatHistorySidebar from "./ChatHistorySidebar";
+import Sidebar from "./Sidebar"; // Import the new Sidebar component
 import { useChat } from "./useChat";
 import { parseArtifacts } from "../utils/artifactParser";
 import { debounce } from "lodash";
@@ -29,7 +29,8 @@ const LLMChatInterface = () => {
   const [userPreferences, setUserPreferences] = useState(null);
   const userPreferencesFetchedRef = useRef(false);
   const { theme } = useContext(ThemeContext);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Changed default to true
+  const [currentSessionId, setCurrentSessionId] = useState(null);
 
   const fetchUserPreferences = useCallback(async () => {
     if (userPreferencesFetchedRef.current) return;
@@ -61,7 +62,7 @@ const LLMChatInterface = () => {
     setSystemMessage: setChatSystemMessage,
     stats,
     handleSubmit,
-  } = useChat(userPreferences);
+  } = useChat(userPreferences, currentSessionId); // Pass currentSessionId to useChat
 
   const processMessageForArtifacts = useCallback((message) => {
     if (message && message.role === "assistant") {
@@ -94,9 +95,9 @@ const LLMChatInterface = () => {
   const onMessageSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      await handleSubmit(e);
+      await handleSubmit(e, currentSessionId); // Pass currentSessionId
     },
-    [handleSubmit]
+    [handleSubmit, currentSessionId]
   );
 
   const toggleSettings = useCallback(
@@ -114,7 +115,7 @@ const LLMChatInterface = () => {
 
   const saveUserPreferences = async (updatedPreferences) => {
     try {
-      await axios.post("/api/user-preferences", updatedPreferences);
+      await axiosInstance.post("/user-preferences", updatedPreferences);
     } catch (error) {
       console.error("Failed to save user preferences:", error);
     }
@@ -152,24 +153,27 @@ const LLMChatInterface = () => {
     [setChatSystemMessage, updateAndSaveUserPreferences]
   );
 
-  const handleSelectChat = useCallback(
-    async (sessionId) => {
-      try {
-        const response = await axios.get("/api/chat/history", {
-          params: { sessionId },
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-        const messages = response.data.messages;
-        setMessages(messages);
-        setInputValue("");
-        toggleSidebar();
-      } catch (error) {
-        console.error("Failed to load chat session:", error);
-      }
+  const handleSelectSession = useCallback((sessionId) => {
+    setCurrentSessionId(sessionId);
+    setMessages([]); // Clear messages when switching sessions
+  }, [setMessages]);
+
+  const handleCreateSession = useCallback(async () => {
+    try {
+      const response = await axiosInstance.post("/chat/sessions");
+      const newSessionId = response.data.session.id;
+      setCurrentSessionId(newSessionId);
+      setMessages([]);
+    } catch (error) {
+      console.error("Error creating new session:", error);
+    }
+  }, [setMessages]);
+
+  const handleResultSelect = useCallback(
+    (sessionId) => {
+      handleSelectSession(sessionId);
     },
-    [setMessages, setInputValue, toggleSidebar]
+    [handleSelectSession]
   );
 
   const headerProps = useMemo(
@@ -188,10 +192,16 @@ const LLMChatInterface = () => {
     >
       <Header {...headerProps} />
       <div className="flex-grow flex overflow-hidden">
-        <ChatHistorySidebar
-          isOpen={isSidebarOpen}
+        <Sidebar
+          isExpanded={isSidebarOpen}
           toggleSidebar={toggleSidebar}
-          onSelectChat={handleSelectChat}
+          onSelectSession={handleSelectSession}
+          onCreateSession={handleCreateSession}
+          onResultSelect={handleResultSelect}
+          systemMessage={systemMessage}
+          setSystemMessage={setSystemMessage}
+          selectedModel={selectedModel}
+          setSelectedModel={setSelectedModel}
         />
         <div className="flex-grow flex flex-col">
           {!userPreferences ? (

@@ -3,8 +3,8 @@ const path = require('path');
 
 const sequelize = new Sequelize({
   dialect: 'sqlite',
-  storage: path.join(__dirname, '../../database.sqlite'), // Database file location
-  logging: false, // Disable logging; set to console.log to see SQL queries
+  storage: path.join(__dirname, '../../database.sqlite'), // Adjust path if necessary
+  logging: false,
 });
 
 module.exports = sequelize;

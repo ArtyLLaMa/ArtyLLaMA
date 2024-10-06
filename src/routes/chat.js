@@ -1,30 +1,26 @@
-/* Will have to update that file for Swagger documentation */
 const express = require("express");
 const {
   chat,
   getChatHistory,
   searchChatHistory,
+  createSession,
+  getSessions,
+  getSessionMessages,
+  addMessage,
 } = require("../controllers/chatController");
 const authenticate = require("../middleware/authenticate");
 
 const router = express.Router();
 
-/**
- * POST /api/chat
- * Send a chat message
- */
+// Session management routes
+router.post("/sessions", authenticate, createSession);
+router.get("/sessions", authenticate, getSessions);
+router.get("/sessions/:sessionId/messages", authenticate, getSessionMessages);
+router.post("/sessions/:sessionId/messages", authenticate, addMessage);
+
+// Chat and search routes
 router.post("/", authenticate, chat);
-
-/**
- * GET /api/chat/history
- * Retrieve chat history
- */
 router.get("/history", authenticate, getChatHistory);
-
-/**
- * POST /api/chat/search
- * Search chat history
- */
-router.post("/search", authenticate, searchChatHistory);
+router.post("/semantic-search", authenticate, searchChatHistory);
 
 module.exports = router;
