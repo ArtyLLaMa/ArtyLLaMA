@@ -5,6 +5,7 @@
 ArtyLLama is an evolving React-based platform that aims to enhance the creation of interactive content. By integrating with AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama explores ways to leverage Large Language Models (LLMs) for generating and iterating on creative projects through natural language interactions.
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/kroonen/artyllama)
+![Version](https://img.shields.io/github/package-json/v/kroonen/ArtyLLaMA)
 
 ## 🚀 Features
 
