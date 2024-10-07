@@ -55,7 +55,7 @@
     "eject": "react-scripts eject",
     "server": "cross-env NODE_ENV=development node server.js",
     "dev": "concurrently --kill-others-on-fail \"npm run server\" \"npm run start\" -n \"server,client\" -c \"blue,green\"",
-    "postinstall": "patch-package"
+    "postinstall": "if-env NODE_ENV=production && echo 'Production build - skipping patches' || patch-package"
   },
   "eslintConfig": {
     "extends": [
@@ -96,6 +96,7 @@
     "cross-env": "^7.0.3",
     "css-select": "^5.1.0",
     "customize-cra": "^1.0.0",
+    "if-env": "^1.0.4",
     "jsonwebtoken": "^9.0.2",
     "nth-check": "^2.1.1",
     "patch-package": "^8.0.0",
