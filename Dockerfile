@@ -1,28 +1,20 @@
 # Build stage
 FROM node:18-alpine AS build
-# Set the working directory
 WORKDIR /app
-# Copy package.json and package-lock.json
 COPY package*.json ./
-# Install dependencies
-RUN npm install
-# Copy the rest of the application code
+RUN npm ci
 COPY . .
-# Build the React app
 RUN npm run build
 
 # Production stage
 FROM node:16-alpine
-# Set the working directory
 WORKDIR /app
-# Copy built assets from the build stage
 COPY --from=build /app/build ./build
-# Copy server files
 COPY server.js .
 COPY src ./src
 COPY package*.json ./
-# Install production dependencies
-RUN npm install --only=production
+# Install production dependencies without running scripts
+RUN npm ci --only=production --ignore-scripts
 # Install nginx
 RUN apk add --no-cache nginx
 # Copy nginx configuration
