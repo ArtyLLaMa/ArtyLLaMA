@@ -15,3 +15,5 @@ combined.log
 !components/artifacts/*
 user_preferences.json
 database.sqlite
+.pnp.cjs
+.pnp.loader.mjs
