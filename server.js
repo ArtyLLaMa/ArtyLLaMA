@@ -4,7 +4,7 @@ const cors = require('cors');
 const swaggerUi = require('swagger-ui-express');
 const os = require('os');
 const compression = require('compression');
-const sequelize = require('./src/config/database'); // Import Sequelize instance
+const sequelize = require('./src/config/database');
 
 const routes = require('./src/routes/index');
 const authRoutes = require('./src/routes/auth');
@@ -41,7 +41,7 @@ app.use(errorHandler);
 async function startServer() {
   try {
     // Initialize SQLite database
-    await sequelize.sync({ alter: true }); // Sync models with the database
+    await sequelize.sync();
     console.log(('Connected to SQLite database'));
 
     await initializeUserPreferences();
