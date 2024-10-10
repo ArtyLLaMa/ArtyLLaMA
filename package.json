@@ -29,7 +29,7 @@
     "lucide-react": "^0.447.0",
     "mermaid": "^11.3.0",
     "mime": "^4.0.4",
-    "openai": "^4.67.2",
+    "openai": "^4.67.3",
     "openapi-types": "^12.1.3",
     "phaser": "^3.85.2",
     "qs": "^6.13.0",
