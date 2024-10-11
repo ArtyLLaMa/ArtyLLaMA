@@ -6,8 +6,6 @@ package-lock.json
 yarn.lock
 .DS_Store
 map.txt
-new \1.txt
-map_bak.txt
 error.log
 combined.log
 /artifacts
@@ -15,5 +13,4 @@ combined.log
 !components/artifacts/*
 user_preferences.json
 database.sqlite
-.pnp.cjs
-.pnp.loader.mjs
+
