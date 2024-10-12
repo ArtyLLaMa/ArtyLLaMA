@@ -84,7 +84,7 @@ Our current focus areas include:
 
 ArtyLLama employs an artifact processing system to handle various types of AI-generated content:
 
-![ArtyLLama Artifact Processing System](https://raw.githubusercontent.com/ArtyLLama/ArtyLLaMA)/artyllama/main/docs/artifact-processing-system.svg)
+![ArtyLLama Artifact Processing System](https://raw.githubusercontent.com/ArtyLLama/ArtyLLaMA/artyllama/main/docs/artifact-processing-system.svg)
 
 This system processes different types of artifacts, from text to 3D models, aiming to create a more interactive creative experience.
 
