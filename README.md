@@ -4,8 +4,8 @@
 
 ArtyLLama is an evolving React-based platform that aims to enhance the creation of interactive content. By integrating with AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama explores ways to leverage Large Language Models (LLMs) for generating and iterating on creative projects through natural language interactions.
 
-![GitHub repo size](https://img.shields.io/github/repo-size/kroonen/artyllama)
-![Version](https://img.shields.io/github/package-json/v/kroonen/ArtyLLaMA)
+![GitHub repo size](https://img.shields.io/github/repo-size/ArtyLLama/ArtyLLaMA)
+![Version](https://img.shields.io/github/package-json/v/ArtyLLama/ArtyLLaMA)
 
 ## 🚀 Features
 
@@ -84,7 +84,7 @@ Our current focus areas include:
 
 ArtyLLama employs an artifact processing system to handle various types of AI-generated content:
 
-![ArtyLLama Artifact Processing System](https://raw.githubusercontent.com/kroonen/artyllama/main/docs/artifact-processing-system.svg)
+![ArtyLLama Artifact Processing System](https://raw.githubusercontent.com/ArtyLLama/ArtyLLaMA)/artyllama/main/docs/artifact-processing-system.svg)
 
 This system processes different types of artifacts, from text to 3D models, aiming to create a more interactive creative experience.
 
@@ -100,8 +100,8 @@ Before getting started, you'll need:
 
 1. **Clone the Repository:**
    ```bash
-   git clone https://github.com/kroonen/artyllama.git
-   cd artyllama
+   git clone https://github.com/ArtyLLaMa/ArtyLLaMa.git
+   cd ArtyLLaMA
    ```
 
 2. **Build the Docker Image:**
