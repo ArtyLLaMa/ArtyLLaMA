@@ -155,7 +155,7 @@ ArtyLLama uses a configuration file for setup:
 
 3. **Run ChromaDB Container in the Background:**
    ```bash
-   docker run -d --name chromadb -p 8000:8000 chromadb/chromadb:latest
+   docker run -d --name chromadb -p 8000:8000 chromadb/chroma:latest
    ```
 
 ## 🧑‍💻 Development Setup
