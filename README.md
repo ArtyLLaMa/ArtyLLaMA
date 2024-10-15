@@ -4,6 +4,9 @@
 
 ArtyLLama is an evolving React-based platform that aims to enhance the creation of interactive content. By integrating with AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama explores ways to leverage Large Language Models (LLMs) for generating and iterating on creative projects through natural language interactions.
 
+> [!NOTE]
+> This project is under active development, and it is challenging to keep the documentation up-to-date while adding new functionalities, as I am currently working on this alone. Your understanding and patience are appreciated.
+
 ![GitHub repo size](https://img.shields.io/github/repo-size/ArtyLLama/ArtyLLaMA)
 ![Version](https://img.shields.io/github/package-json/v/ArtyLLama/ArtyLLaMA)
 
@@ -147,6 +150,14 @@ ArtyLLama uses a configuration file for setup:
    - You can choose to connect to your local Ollama API for running models locally.
    - If connecting locally, consider selecting the lite system prompt for smaller models.
 
+> [!WARNING]
+> To use the new local or external embedding models, you need to have a Docker instance running with ChromaDB. Make sure to select the embedding model in the settings.
+
+3. **Run ChromaDB Container in the Background:**
+   ```bash
+   docker run -d --name chromadb -p 8000:8000 chromadb/chromadb:latest
+   ```
+
 ## 🧑‍💻 Development Setup
 
 For local development without Docker:
@@ -184,4 +195,4 @@ If you find ArtyLLama interesting, feel free to give it a ⭐️ on GitHub!
 
 For support or to report issues, please open an issue on the GitHub repository.
 
-© 2024 ArtyLLama Research Project
+© 2024 ArtyLLama Research Project | A core initiative of [Kroonen.ai](https://www.kroonen.ai), dedicated to advancing AI-driven creativity and computational research.
