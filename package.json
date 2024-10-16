@@ -14,7 +14,7 @@
     "audit": "^0.0.6",
     "axios": "^1.7.7",
     "axios-rate-limit": "^1.4.0",
-    "chart.js": "^4.4.4",
+    "chart.js": "^4.4.5",
     "chromadb": "^1.9.2",
     "compression": "^1.7.4",
     "connect": "^3.7.0",
