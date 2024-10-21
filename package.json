@@ -17,7 +17,7 @@
     "cors": "^2.8.5",
     "dompurify": "^3.1.7",
     "dotenv": "^16.4.5",
-    "eventsource-parser": "^2.0.1",
+    "eventsource-parser": "^3.0.0",
     "express": "4.21.1",
     "express-rate-limit": "^7.4.1",
     "jsonwebtoken": "^9.0.2",
