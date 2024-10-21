@@ -2,6 +2,7 @@
 .zed/
 node_modules/
 build/
+dist/
 package-lock.json
 yarn.lock
 .DS_Store
@@ -13,4 +14,3 @@ combined.log
 !components/artifacts/*
 user_preferences.json
 database.sqlite
-
