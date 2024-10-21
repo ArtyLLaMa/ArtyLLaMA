@@ -2,7 +2,7 @@
 
 ![ArtyLLama Demo](artyllamaDemo.gif)
 
-ArtyLLama is an evolving React-based platform that aims to enhance the creation of interactive content. By integrating with AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama explores ways to leverage Large Language Models (LLMs) for generating and iterating on creative projects through natural language interactions.
+ArtyLLama is an evolving React + ViteJS based platform that aims to enhance the creation of interactive content. By integrating with AI providers such as Ollama, OpenAI, and Anthropic, ArtyLLama explores ways to leverage Large Language Models (LLMs) for generating and iterating on creative projects through natural language interactions.
 
 > [!NOTE]
 > This project is under active development, and it is challenging to keep the documentation up-to-date while adding new functionalities, as I am currently working on this alone. Your understanding and patience are appreciated.
@@ -133,7 +133,7 @@ Before getting started, you'll need:
    ```
 
 4. **Access the Application:**
-   - Frontend: http://localhost:3000
+   - Frontend: http://localhost:5173
    - Backend: http://localhost:3001
    - Swagger UI: http://localhost:3001/api-docs
 
@@ -186,7 +186,7 @@ This project is licensed under a modified MIT License - see the LICENSE file for
 ## 🙏 Acknowledgments
 
 - AI Providers: Ollama, OpenAI, and Anthropic
-- Frameworks and Libraries: React, Create React App, Tailwind CSS, DOMPurify, Express.js, Three.js
+- Frameworks and Libraries: React, ViteJS, Tailwind CSS, DOMPurify, Express.js, Three.js
 - Community: All contributors and testers, including Jean-Sebastien
 
 ## 💬 Support
