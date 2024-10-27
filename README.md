@@ -195,4 +195,4 @@ If you find ArtyLLama interesting, feel free to give it a ⭐️ on GitHub!
 
 For support or to report issues, please open an issue on the GitHub repository.
 
-© 2024 ArtyLLama Research Project | A core initiative of [Kroonen.ai](https://www.kroonen.ai), dedicated to advancing AI-driven creativity and computational research.
+<sup> © 2024 ArtyLLama Research Project | A core initiative of [Kroonen.ai](https://www.kroonen.ai), dedicated to advancing AI-driven creativity and computational research. </sup>
