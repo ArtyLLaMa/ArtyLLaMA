@@ -41,7 +41,7 @@
     "three": "^0.170.0",
     "uuid": "^11.0.2",
     "web-vitals": "4.2.4",
-    "winston": "^3.16.0"
+    "winston": "^3.17.0"
   },
   "scripts": {
     "dev": "concurrently \"vite\" \"nodemon server.js --watch server.js --watch src/ --ext js,jsx,json --ignore node_modules --ignore dist --ignore public --ignore *.sqlite* --ignore logs/* --ignore uploads/* --ignore tmp/* --ignore coverage/*\"",
