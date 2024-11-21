@@ -13,7 +13,7 @@
     "chromadb": "^1.9.3",
     "compression": "^1.7.5",
     "connect": "^3.7.0",
-    "cookie": "1.0.1",
+    "cookie": "1.0.2",
     "cors": "^2.8.5",
     "dompurify": "^3.2.1",
     "dotenv": "^16.4.5",
