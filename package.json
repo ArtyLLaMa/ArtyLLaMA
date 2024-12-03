@@ -6,7 +6,7 @@
     "@anthropic-ai/sdk": "^0.32.1",
     "@tailwindcss/forms": "^0.5.9",
     "@tailwindcss/typography": "^0.5.15",
-    "axios": "^1.7.7",
+    "axios": "^1.7.8",
     "axios-rate-limit": "^1.4.0",
     "bcrypt": "^5.1.1",
     "chart.js": "^4.4.6",
