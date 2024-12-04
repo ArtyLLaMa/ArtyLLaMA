@@ -9,7 +9,7 @@
     "axios": "^1.7.8",
     "axios-rate-limit": "^1.4.0",
     "bcrypt": "^5.1.1",
-    "chart.js": "^4.4.6",
+    "chart.js": "^4.4.7",
     "chromadb": "^1.9.4",
     "compression": "^1.7.5",
     "connect": "^3.7.0",
