@@ -44,8 +44,14 @@ exports.storeMessageWithEmbedding = async (
 ) => {
   try {
     const userPreferences = await getUserPreferences();
-    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
 
+    // Check if semantic search/embedding is enabled
+    if (userPreferences.enableSemanticSearch === false) {
+      // If disabled, skip embedding generation and storage
+      return null;
+    }
+
+    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
     let embedding = null;
     let embeddingDimension = null;
 
@@ -89,7 +95,6 @@ exports.storeMessageWithEmbedding = async (
 
 exports.getChatHistory = async (userId, sessionId) => {
   try {
-    // Fetch messages from the database
     const whereClause = { userId };
     if (sessionId) {
       whereClause.sessionId = sessionId;
@@ -110,6 +115,13 @@ exports.getChatHistory = async (userId, sessionId) => {
 exports.searchChatHistory = async (userId, query, topK = 10) => {
   try {
     const userPreferences = await getUserPreferences();
+
+    // If semantic search is disabled, return an empty array or a message
+    if (userPreferences.enableSemanticSearch === false) {
+      console.log('Semantic search is disabled by user preferences.');
+      return [];
+    }
+
     const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
 
     let queryEmbedding = null;

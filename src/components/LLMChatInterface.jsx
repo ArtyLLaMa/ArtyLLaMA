@@ -13,7 +13,7 @@ import ChatArea from "./ChatArea";
 import PreviewPanel from "./PreviewPanel";
 import SettingsModal from "./SettingsModal";
 import ExpandedPreviewModal from "./ExpandedPreviewModal";
-import Sidebar from "./Sidebar"; // Import the new Sidebar component
+import Sidebar from "./Sidebar";
 import { useChat } from "./useChat";
 import { parseArtifacts } from "../utils/artifactParser";
 import { debounce } from "lodash";
@@ -29,7 +29,7 @@ const LLMChatInterface = () => {
   const [userPreferences, setUserPreferences] = useState(null);
   const userPreferencesFetchedRef = useRef(false);
   const { theme } = useContext(ThemeContext);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true); // Changed default to true
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentSessionId, setCurrentSessionId] = useState(null);
 
   const fetchUserPreferences = useCallback(async () => {
@@ -62,7 +62,7 @@ const LLMChatInterface = () => {
     setSystemMessage: setChatSystemMessage,
     stats,
     handleSubmit,
-  } = useChat(userPreferences, currentSessionId); // Pass currentSessionId to useChat
+  } = useChat(userPreferences, currentSessionId);
 
   const processMessageForArtifacts = useCallback((message) => {
     if (message && message.role === "assistant") {
@@ -95,7 +95,7 @@ const LLMChatInterface = () => {
   const onMessageSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      await handleSubmit(e, currentSessionId); // Pass currentSessionId
+      await handleSubmit(e, currentSessionId);
     },
     [handleSubmit, currentSessionId]
   );
@@ -155,7 +155,7 @@ const LLMChatInterface = () => {
 
   const handleSelectSession = useCallback((sessionId) => {
     setCurrentSessionId(sessionId);
-    setMessages([]); // Clear messages when switching sessions
+    setMessages([]);
   }, [setMessages]);
 
   const handleCreateSession = useCallback(async () => {
@@ -202,6 +202,8 @@ const LLMChatInterface = () => {
           setSystemMessage={setSystemMessage}
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
+          // Pass enableSemanticSearch to Sidebar so it can conditionally show/hide semantic search features
+          enableSemanticSearch={userPreferences?.enableSemanticSearch}
         />
         <div className="flex-grow flex flex-col">
           {!userPreferences ? (

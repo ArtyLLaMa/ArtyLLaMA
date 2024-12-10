@@ -35,9 +35,10 @@ const SettingsModal = ({
     ANTHROPIC_API_KEY: '',
     OPENAI_API_KEY: '',
   });
-  const [embeddingModel, setEmbeddingModel] = useState('OpenAI'); // New state
+  const [embeddingModel, setEmbeddingModel] = useState('OpenAI');
+  const [enableSemanticSearch, setEnableSemanticSearch] = useState(true); // New state for semantic search toggle
 
-  const tabs = ['System Message', 'Model Management', 'API Keys', 'Embedding Settings', 'About']; // Added 'Embedding Settings'
+  const tabs = ['System Message', 'Model Management', 'API Keys', 'Embedding Settings', 'About'];
 
   const [localSystemMessage, setLocalSystemMessage] = useState(systemMessage);
   const initialRenderRef = useRef(true);
@@ -50,7 +51,8 @@ const SettingsModal = ({
         const data = response.data;
         setSavedMessages(data.savedMessages || []);
         setApiKeys(data.apiKeys || {});
-        setEmbeddingModel(data.embeddingModel || 'OpenAI'); // Load saved embedding model
+        setEmbeddingModel(data.embeddingModel || 'OpenAI');
+        setEnableSemanticSearch(data.enableSemanticSearch !== false); // Load semantic search preference
         if (data.lastUsedModel && data.lastUsedModel !== selectedModel) {
           setSelectedModel(data.lastUsedModel);
         }
@@ -83,6 +85,7 @@ const SettingsModal = ({
       savedMessages,
       apiKeys,
       embeddingModel,
+      enableSemanticSearch,
     });
   };
 
@@ -102,7 +105,11 @@ const SettingsModal = ({
         { name: newMessageName, content: newMessageContent },
       ];
       setSavedMessages(updatedMessages);
-      updateAndSaveUserPreferences({ savedMessages: updatedMessages, embeddingModel });
+      updateAndSaveUserPreferences({
+        savedMessages: updatedMessages,
+        embeddingModel,
+        enableSemanticSearch,
+      });
       setNewMessageName('');
       setNewMessageContent('');
     }
@@ -111,7 +118,11 @@ const SettingsModal = ({
   const handleRemoveMessage = (index) => {
     const updatedMessages = savedMessages.filter((_, i) => i !== index);
     setSavedMessages(updatedMessages);
-    updateAndSaveUserPreferences({ savedMessages: updatedMessages, embeddingModel });
+    updateAndSaveUserPreferences({
+      savedMessages: updatedMessages,
+      embeddingModel,
+      enableSemanticSearch,
+    });
   };
 
   const handlePullModel = async () => {
@@ -154,13 +165,18 @@ const SettingsModal = ({
   };
 
   const handleSaveApiKeys = () => {
-    updateAndSaveUserPreferences({ apiKeys, embeddingModel });
+    updateAndSaveUserPreferences({ apiKeys, embeddingModel, enableSemanticSearch });
     alert('API keys saved successfully');
   };
 
   const handleEmbeddingModelChange = (e) => {
     setEmbeddingModel(e.target.value);
-    updateAndSaveUserPreferences({ embeddingModel: e.target.value });
+    updateAndSaveUserPreferences({ embeddingModel: e.target.value, enableSemanticSearch });
+  };
+
+  const handleSemanticSearchToggle = (e) => {
+    setEnableSemanticSearch(e.target.checked);
+    updateAndSaveUserPreferences({ enableSemanticSearch: e.target.checked, embeddingModel });
   };
 
   return (
@@ -401,6 +417,25 @@ const SettingsModal = ({
                     Ensure that the Ollama embedding model is available locally.
                   </div>
                 )}
+
+                {/* New toggle for semantic search */}
+                <div className="mb-3 mt-4">
+                  <label className="block text-xs font-medium mb-1">
+                    Enable Semantic Search:
+                  </label>
+                  <div className="flex items-center space-x-2">
+                    <input
+                      type="checkbox"
+                      checked={enableSemanticSearch}
+                      onChange={handleSemanticSearchToggle}
+                    />
+                    <span className="text-xs">
+                      {enableSemanticSearch
+                        ? 'Semantic search is enabled'
+                        : 'Semantic search is disabled'}
+                    </span>
+                  </div>
+                </div>
               </div>
             )}
             {activeTab === 'About' && (

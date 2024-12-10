@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { X, Star } from "lucide-react";
 
-const ChatHistorySidebar = ({ isOpen, toggleSidebar, onSelectChat }) => {
+const ChatHistorySidebar = ({ isOpen, toggleSidebar, onSelectChat, enableSemanticSearch }) => {
   const [chatHistory, setChatHistory] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -33,17 +33,22 @@ const ChatHistorySidebar = ({ isOpen, toggleSidebar, onSelectChat }) => {
   };
 
   const handleSearch = async (e) => {
-    setSearchQuery(e.target.value);
-    if (e.target.value.trim() === "") {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim() === "") {
       setSearchResults([]);
       return;
     }
+
+    // If semantic search is disabled, do not attempt search
+    if (!enableSemanticSearch) return;
+
     try {
       const token = localStorage.getItem("token");
 
       const response = await axios.post(
         "/api/chat/search",
-        { query: e.target.value, topK: 10 },
+        { query: query, topK: 10 },
         {
           headers: {
             "Content-Type": "application/json",
@@ -77,6 +82,7 @@ const ChatHistorySidebar = ({ isOpen, toggleSidebar, onSelectChat }) => {
     }
   };
 
+  // Determine which chats to display (filtered by search and bookmark state)
   const chatsToDisplay =
     searchQuery.trim() === "" ? chatHistory : searchResults;
 
@@ -102,13 +108,22 @@ const ChatHistorySidebar = ({ isOpen, toggleSidebar, onSelectChat }) => {
             <X size={24} />
           </button>
         </div>
-        <input
-          type="text"
-          placeholder="Search chats..."
-          value={searchQuery}
-          onChange={handleSearch}
-          className="w-full p-2 mb-4 bg-gray-100 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200"
-        />
+
+        {/* If semantic search is disabled, show a message; otherwise show the search input */}
+        {!enableSemanticSearch ? (
+          <div className="text-gray-400 text-sm italic mb-4">
+            Semantic search is currently disabled.
+          </div>
+        ) : (
+          <input
+            type="text"
+            placeholder="Search chats..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="w-full p-2 mb-4 bg-gray-100 dark:bg-gray-700 rounded text-gray-800 dark:text-gray-200"
+          />
+        )}
+
         <div className="flex items-center mb-4">
           <input
             type="checkbox"

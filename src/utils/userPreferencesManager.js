@@ -13,6 +13,7 @@ const defaultPreferences = {
     OPENAI_API_KEY: '',
   },
   embeddingModel: 'OpenAI',
+  enableSemanticSearch: true // New property to toggle semantic search on/off
 };
 
 exports.initializeUserPreferences = async () => {
@@ -37,19 +38,22 @@ exports.getUserPreferences = async () => {
   try {
     const data = await fs.readFile(USER_PREFERENCES_FILE, 'utf8');
     const preferences = JSON.parse(data);
-    // Ensure all default properties are present
+    // Merge the loaded preferences with defaults to ensure all properties exist
     return { ...defaultPreferences, ...preferences };
   } catch (error) {
     console.error('Error reading user preferences:', error);
+    // If reading fails, return defaults
     return defaultPreferences;
   }
 };
 
 exports.saveUserPreferences = async (preferences) => {
   try {
+    // Merge with defaultPreferences to ensure no missing keys
+    const mergedPreferences = { ...defaultPreferences, ...preferences };
     await fs.writeFile(
       USER_PREFERENCES_FILE,
-      JSON.stringify(preferences, null, 2)
+      JSON.stringify(mergedPreferences, null, 2)
     );
   } catch (error) {
     console.error('Error writing user preferences:', error);

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import axiosInstance from '../utils/axiosInstance';
 import { Search } from 'lucide-react';
 
-const SemanticSearchBox = ({ onResultSelect }) => {
+const SemanticSearchBox = ({ onResultSelect, enableSemanticSearch }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
 
@@ -19,6 +19,14 @@ const SemanticSearchBox = ({ onResultSelect }) => {
       console.error('Error performing semantic search:', error);
     }
   };
+
+  if (!enableSemanticSearch) {
+    return (
+      <div className="semantic-search-box text-gray-400 text-sm italic">
+        Semantic search is currently disabled.
+      </div>
+    );
+  }
 
   return (
     <div className="semantic-search-box">

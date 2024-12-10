@@ -3,7 +3,12 @@ import { ChevronLeft, ChevronRight, Plus } from 'lucide-react';
 import SessionList from './SessionList';
 import SemanticSearchBox from './SemanticSearchBox';
 
-const Sidebar = ({ onSelectSession, onCreateSession, onResultSelect }) => {
+const Sidebar = ({ 
+  onSelectSession, 
+  onCreateSession, 
+  onResultSelect, 
+  enableSemanticSearch
+}) => {
   const [isExpanded, setIsExpanded] = useState(true);
 
   return (
@@ -23,8 +28,8 @@ const Sidebar = ({ onSelectSession, onCreateSession, onResultSelect }) => {
       </div>
       {isExpanded && (
         <div className="flex-grow overflow-y-auto p-4">
-          {/* Semantic Search Box */}
-          <SemanticSearchBox onResultSelect={onResultSelect} />
+          {/* Pass enableSemanticSearch down to SemanticSearchBox */}
+          <SemanticSearchBox onResultSelect={onResultSelect} enableSemanticSearch={enableSemanticSearch} />
 
           {/* Session Management */}
           <div className="mt-4">
