@@ -37,7 +37,7 @@
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "three": "^0.172.0",
-    "uuid": "^11.0.3",
+    "uuid": "^11.0.5",
     "web-vitals": "4.2.4",
     "winston": "^3.17.0"
   },
