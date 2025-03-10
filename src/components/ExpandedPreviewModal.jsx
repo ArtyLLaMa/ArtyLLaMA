@@ -1,16 +1,52 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Code, Eye, FileText, Minimize2 } from 'lucide-react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { vscDarkPlus, prism } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import * as shiki from 'shiki';
 import { ArtifactRenderer } from './ArtifactRenderer';
 
 const ExpandedPreviewModal = ({ toggleExpand, artifact }) => {
   const [activeTab, setActiveTab] = useState('preview');
+  const [highlightedCode, setHighlightedCode] = useState('');
 
   const handleClose = (e) => {
     e.stopPropagation();
     toggleExpand();
   };
+
+  useEffect(() => {
+    if (activeTab === 'code' && artifact?.content) {
+      import('shiki').then((shiki) => {
+        const detectedLanguage = detectLanguage(artifact.content);
+        shiki.codeToHtml(artifact.content, {
+          lang: detectedLanguage,
+          theme: 'dracula'
+        }).then((highlightedHtml) => {
+          setHighlightedCode(highlightedHtml);
+        });
+      }).catch((error) => {
+        console.error('Error importing or using shiki:', error);
+      });
+    }
+  }, [activeTab, artifact]);
+
+  function detectLanguage(code) {
+    const languagePatterns = {
+      javascript: /\b(function|const|let|var|=>)\b/,
+      python: /\b(def|import|from|class)\b/,
+      java: /\b(public|class|void|int|String)\b/,
+      html: /<\/?[a-z][\s\S]*>/i,
+      css: /[{}:;]/,
+      sql: /\b(SELECT|FROM|WHERE|INSERT|UPDATE|DELETE)\b/i,
+      bash: /\b(echo|export|source|if|\[|\])\b/,
+    };
+
+    for (const [lang, pattern] of Object.entries(languagePatterns)) {
+      if (pattern.test(code)) {
+        return lang;
+      }
+    }
+
+    return 'text'; // Fallback for unknown languages
+  }
 
   return (
     <div
@@ -69,13 +105,10 @@ const ExpandedPreviewModal = ({ toggleExpand, artifact }) => {
             </div>
           )}
           {activeTab === 'code' && (
-            <SyntaxHighlighter
-              language={artifact.type === 'code' ? 'javascript' : 'markup'}
-              style={artifact.type === 'code' ? vscDarkPlus : prism}
-              className="h-full"
-            >
-              {artifact.content}
-            </SyntaxHighlighter>
+            <div 
+              className="h-full overflow-auto" 
+              dangerouslySetInnerHTML={{ __html: highlightedCode.replace('<pre', '<pre style="padding:24px"') }} 
+            />
           )}
           {activeTab === 'debug' && (
             <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded overflow-auto h-full">

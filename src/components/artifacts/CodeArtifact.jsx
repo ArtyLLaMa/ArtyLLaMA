@@ -1,29 +1,24 @@
-import React, { useState } from 'react';
-import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
-import { atomDark } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import React, { useState, useEffect } from 'react';
+import * as shiki from 'shiki';
 import { ClipboardCopy, Check } from 'lucide-react';
 
 const CodeArtifact = ({ content, language }) => {
   const [isCopied, setIsCopied] = useState(false);
+  const [shikiHtml, setShikiHtml] = useState('');
 
   const detectedLanguage = language || detectLanguage(content);
+
+  useEffect(() => {
+    shiki.getHighlighter({ theme: "dracula", langs: [detectedLanguage] }).then((highlighter) => {
+      setShikiHtml(highlighter.codeToHtml(content, { lang: detectedLanguage }));
+    });
+  }, [content, detectedLanguage]);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(content).then(() => {
       setIsCopied(true);
       setTimeout(() => setIsCopied(false), 2000);
     });
-  };
-
-  const customStyle = {
-    ...atomDark,
-    'pre[class*="language-"]': {
-      ...atomDark['pre[class*="language-"]'],
-      background: '#1E1E1E',
-      padding: '1em',
-      borderRadius: '0.5em',
-      overflow: 'auto',
-    },
   };
 
   return (
@@ -37,14 +32,7 @@ const CodeArtifact = ({ content, language }) => {
           {isCopied ? <Check size={20} /> : <ClipboardCopy size={20} />}
         </button>
       </div>
-      <SyntaxHighlighter 
-        language={detectedLanguage} 
-        style={customStyle}
-        showLineNumbers={true}
-        wrapLines={true}
-      >
-        {content}
-      </SyntaxHighlighter>
+      <div dangerouslySetInnerHTML={{ __html: shikiHtml }} />
     </div>
   );
 };
