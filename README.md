@@ -181,7 +181,7 @@ Contributions to ArtyLLama are welcome! Please read our Contributing Guidelines 
 
 ## 📄 License
 
-This project is licensed under an AGPLv3 License - see the LICENSE file for more details.
+This project is licensed under MIT License - see the LICENSE file for more details.
 
 ## 🙏 Acknowledgments
 
