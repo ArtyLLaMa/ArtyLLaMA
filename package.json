@@ -25,7 +25,7 @@
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
     "lucide-react": "^0.484.0",
-    "mermaid": "^11.5.0",
+    "mermaid": "^11.6.0",
     "mime": "^4.0.6",
     "openai": "^4.89.1",
     "openapi-types": "^12.1.3",
