@@ -19,7 +19,7 @@
     "dompurify": "^3.2.4",
     "dotenv": "^16.4.7",
     "esbuild": "^0.25.0",
-    "eventsource-parser": "^3.0.0",
+    "eventsource-parser": "^3.0.1",
     "express": "5.1.0",
     "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
