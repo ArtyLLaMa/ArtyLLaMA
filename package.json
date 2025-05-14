@@ -9,7 +9,7 @@
     "@vitejs/plugin-react": "^4.4.1",
     "axios": "^1.8.4",
     "axios-rate-limit": "^1.4.0",
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "chart.js": "^4.4.9",
     "chromadb": "^2.2.1",
     "compression": "^1.8.0",
