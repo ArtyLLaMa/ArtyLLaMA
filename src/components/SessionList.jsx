@@ -23,7 +23,7 @@ const SessionList = ({ onSelectSession }) => {
         <li key={session.id} className="mb-2">
           <button
             onClick={() => onSelectSession(session.id)}
-            className="w-full text-left p-2 bg-gray-800 rounded hover:bg-gray-700"
+            className="w-full text-left p-2 bg-gray-200 hover:bg-gray-300 text-gray-800 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-white rounded"
           >
             {session.title || 'Untitled Chat'}
           </button>

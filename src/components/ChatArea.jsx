@@ -39,10 +39,10 @@ const ChatArea = ({
   }, []);
 
   return (
-    <div className="flex-grow flex flex-col overflow-hidden bg-gray-900 text-gray-300">
+    <div className="flex-grow flex flex-col overflow-hidden bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-300">
       <div className="flex-grow overflow-y-auto p-4 space-y-4">
         {error && (
-          <div className="bg-red-700 text-white p-3 rounded-md mb-4 text-sm">
+          <div className="bg-red-200 text-red-800 dark:bg-red-700 dark:text-white p-3 rounded-md mb-4 text-sm">
             {error}
           </div>
         )}
@@ -72,8 +72,8 @@ const ChatArea = ({
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
-        <div className="flex items-center bg-gray-800 rounded-md overflow-hidden">
+      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-300 dark:border-gray-700">
+        <div className="flex items-center bg-gray-200 dark:bg-gray-800 rounded-md overflow-hidden">
           <input
             type="text"
             value={inputValue}
@@ -84,12 +84,12 @@ const ChatArea = ({
               }
             }}
             placeholder={placeholderText || "Send a message..."}
-            className="flex-grow p-3 bg-transparent outline-none text-gray-300 placeholder-gray-500"
+            className="flex-grow p-3 bg-transparent outline-none text-gray-800 dark:text-gray-300 placeholder-gray-400 dark:placeholder-gray-500"
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="p-3 text-gray-400 hover:text-gray-200 transition-colors disabled:opacity-50"
+            className="p-3 text-gray-600 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors disabled:opacity-50"
             disabled={isLoading || !inputValue.trim()}
           >
             {isLoading ? (
@@ -115,8 +115,8 @@ const MessageBubble = ({ message, isStreaming = false }) => (
         message.role === 'user'
           ? 'bg-blue-600 text-white'
           : isStreaming
-          ? 'bg-gray-700 text-gray-300 animate-pulse'
-          : 'bg-gray-700 text-gray-300'
+          ? 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300 animate-pulse'
+          : 'bg-gray-200 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
       }`}
     >
       {message.content}
@@ -127,7 +127,7 @@ const MessageBubble = ({ message, isStreaming = false }) => (
 const SuggestionButton = ({ icon, text, setInputValue }) => (
   <button
     onClick={() => setInputValue(text)}
-    className="flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg p-4 transition-colors w-full h-36"
+    className="flex flex-col items-center justify-center bg-gray-200 hover:bg-gray-300 text-gray-700 dark:bg-gray-800 dark:hover:bg-gray-700 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg p-4 transition-colors w-full h-36"
   >
     <div className="mb-2">{icon}</div>
     <span className="text-xs text-center">{text}</span>
