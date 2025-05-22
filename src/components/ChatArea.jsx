@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline } from 'lucide-react';
+import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline, Brain, Code, Lightbulb, BookOpen } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
 import suggestionsData from '../config/suggestions.json';
 
@@ -9,6 +9,10 @@ const iconMap = {
   Gamepad2: <Gamepad2 size={20} />,
   ChartBarBig: <ChartBarBig size={20} />,
   Atom: <Atom size={20} />,
+  Brain: <Brain size={20} />,
+  Code: <Code size={20} />,
+  Lightbulb: <Lightbulb size={20} />,
+  BookOpen: <BookOpen size={20} />,
 };
 
 const ChatArea = ({

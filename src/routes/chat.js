@@ -185,6 +185,7 @@ const {
   getSessions,
   getSessionMessages,
   addMessage,
+  updateSessionTitle, // Import updateSessionTitle
 } = require("../controllers/chatController");
 const authenticate = require("../middleware/authenticate");
 
@@ -327,6 +328,54 @@ router.get("/sessions/:sessionId/messages", authenticate, getSessionMessages);
  *         description: Failed to add message.
  */
 router.post("/sessions/:sessionId/messages", authenticate, addMessage);
+
+/**
+ * @swagger
+ * /api/chat/sessions/{sessionId}/title:
+ *   put:
+ *     summary: Update the title of a specific chat session.
+ *     description: Generates a title based on provided text and updates the session. The user must own the session.
+ *     tags: [Chat Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: sessionId
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         required: true
+ *         description: The ID of the session to update the title for.
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               textForTitle:
+ *                 type: string
+ *                 description: The text content to be used for generating the title.
+ *                 example: "The first message from the AI about quantum computing."
+ *             required:
+ *               - textForTitle
+ *     responses:
+ *       '200':
+ *         description: Session title updated successfully. Returns the updated session object.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Session'
+ *       '400':
+ *         description: Bad request (e.g., missing textForTitle).
+ *       '401':
+ *         description: Unauthorized.
+ *       '404':
+ *         description: Session not found.
+ *       '500':
+ *         description: Failed to update session title or generate title.
+ */
+router.put("/sessions/:sessionId/title", authenticate, updateSessionTitle);
 
 // Chat and search routes
 

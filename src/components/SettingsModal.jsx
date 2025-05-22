@@ -37,8 +37,9 @@ const SettingsModal = ({
   });
   const [embeddingModel, setEmbeddingModel] = useState('OpenAI');
   const [enableSemanticSearch, setEnableSemanticSearch] = useState(true); // New state for semantic search toggle
+  const [autoGenerateChatTitle, setAutoGenerateChatTitle] = useState(true); // New state for auto title generation
 
-  const tabs = ['System Message', 'Model Management', 'API Keys', 'Embedding Settings', 'About'];
+  const tabs = ['System Message', 'Model Management', 'API Keys', 'Embedding Settings', 'Chat Settings', 'About'];
 
   const [localSystemMessage, setLocalSystemMessage] = useState(systemMessage);
   const initialRenderRef = useRef(true);
@@ -53,6 +54,7 @@ const SettingsModal = ({
         setApiKeys(data.apiKeys || {});
         setEmbeddingModel(data.embeddingModel || 'OpenAI');
         setEnableSemanticSearch(data.enableSemanticSearch !== false); // Load semantic search preference
+        setAutoGenerateChatTitle(data.autoGenerateChatTitle !== false); // Load auto title generation preference
         if (data.lastUsedModel && data.lastUsedModel !== selectedModel) {
           setSelectedModel(data.lastUsedModel);
         }
@@ -86,6 +88,7 @@ const SettingsModal = ({
       apiKeys,
       embeddingModel,
       enableSemanticSearch,
+      autoGenerateChatTitle,
     });
   };
 
@@ -109,6 +112,7 @@ const SettingsModal = ({
         savedMessages: updatedMessages,
         embeddingModel,
         enableSemanticSearch,
+        autoGenerateChatTitle,
       });
       setNewMessageName('');
       setNewMessageContent('');
@@ -122,6 +126,7 @@ const SettingsModal = ({
       savedMessages: updatedMessages,
       embeddingModel,
       enableSemanticSearch,
+      autoGenerateChatTitle,
     });
   };
 
@@ -165,18 +170,23 @@ const SettingsModal = ({
   };
 
   const handleSaveApiKeys = () => {
-    updateAndSaveUserPreferences({ apiKeys, embeddingModel, enableSemanticSearch });
+    updateAndSaveUserPreferences({ apiKeys, embeddingModel, enableSemanticSearch, autoGenerateChatTitle });
     alert('API keys saved successfully');
   };
 
   const handleEmbeddingModelChange = (e) => {
     setEmbeddingModel(e.target.value);
-    updateAndSaveUserPreferences({ embeddingModel: e.target.value, enableSemanticSearch });
+    updateAndSaveUserPreferences({ embeddingModel: e.target.value, enableSemanticSearch, autoGenerateChatTitle });
   };
 
   const handleSemanticSearchToggle = (e) => {
     setEnableSemanticSearch(e.target.checked);
-    updateAndSaveUserPreferences({ enableSemanticSearch: e.target.checked, embeddingModel });
+    updateAndSaveUserPreferences({ enableSemanticSearch: e.target.checked, embeddingModel, autoGenerateChatTitle });
+  };
+
+  const handleAutoGenerateChatTitleToggle = (e) => {
+    setAutoGenerateChatTitle(e.target.checked);
+    updateAndSaveUserPreferences({ autoGenerateChatTitle: e.target.checked, embeddingModel, enableSemanticSearch });
   };
 
   return (
@@ -392,50 +402,60 @@ const SettingsModal = ({
               </div>
             )}
             {activeTab === 'Embedding Settings' && (
-              <div className="bg-gray-100 dark:bg-gray-700 p-3 rounded-lg">
-                <h3 className="text-sm font-semibold mb-2">Embedding Settings</h3>
-                <div className="mb-3">
-                  <label className="block text-xs font-medium mb-1">
-                    Select Embedding Model:
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Embedding Settings</h3>
+                {/* Embedding Model Selection */}
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-1">
+                    Embedding Model
                   </label>
                   <select
                     value={embeddingModel}
                     onChange={handleEmbeddingModelChange}
-                    className="w-full p-2 bg-gray-200 dark:bg-gray-600 rounded text-xs text-gray-800 dark:text-white"
+                    className="w-full p-2 bg-gray-200 dark:bg-gray-700 rounded text-gray-800 dark:text-white"
                   >
-                    <option value="OpenAI">OpenAI Embedding</option>
-                    <option value="Ollama">Ollama Embedding</option>
+                    <option value="OpenAI">OpenAI</option>
+                    <option value="Ollama">Ollama</option>
+                    {/* Add other models as needed */}
                   </select>
                 </div>
-                {embeddingModel === 'OpenAI' && (
-                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                    Make sure your OpenAI API Key is set in the API Keys tab.
-                  </div>
-                )}
-                {embeddingModel === 'Ollama' && (
-                  <div className="mt-2 text-xs text-gray-600 dark:text-gray-300">
-                    Ensure that the Ollama embedding model is available locally.
-                  </div>
-                )}
-
-                {/* New toggle for semantic search */}
-                <div className="mb-3 mt-4">
-                  <label className="block text-xs font-medium mb-1">
-                    Enable Semantic Search:
+                {/* Semantic Search Toggle */}
+                <div className="mb-4 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="semanticSearchToggle"
+                    checked={enableSemanticSearch}
+                    onChange={handleSemanticSearchToggle}
+                    className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="semanticSearchToggle" className="text-sm font-medium">
+                    Enable Semantic Search
                   </label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="checkbox"
-                      checked={enableSemanticSearch}
-                      onChange={handleSemanticSearchToggle}
-                    />
-                    <span className="text-xs">
-                      {enableSemanticSearch
-                        ? 'Semantic search is enabled'
-                        : 'Semantic search is disabled'}
-                    </span>
-                  </div>
                 </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  Semantic search helps find relevant documents based on meaning, not just keywords. Requires a compatible embedding model.
+                </p>
+              </div>
+            )}
+            {activeTab === 'Chat Settings' && (
+              <div>
+                <h3 className="text-lg font-semibold mb-4">Chat Settings</h3>
+                {/* Auto Generate Chat Title Toggle */}
+                <div className="mb-4 flex items-center">
+                  <input
+                    type="checkbox"
+                    id="autoGenerateChatTitleToggle"
+                    checked={autoGenerateChatTitle}
+                    onChange={handleAutoGenerateChatTitleToggle}
+                    className="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  />
+                  <label htmlFor="autoGenerateChatTitleToggle" className="text-sm font-medium">
+                    Automatically Generate Chat Titles
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 dark:text-gray-400">
+                  If enabled, chat titles will be automatically generated based on the first AI response.
+                </p>
               </div>
             )}
             {activeTab === 'About' && (

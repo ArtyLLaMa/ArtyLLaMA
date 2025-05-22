@@ -13,7 +13,8 @@ const defaultPreferences = {
     OPENAI_API_KEY: '',
   },
   embeddingModel: 'OpenAI',
-  enableSemanticSearch: true // New property to toggle semantic search on/off
+  enableSemanticSearch: true,
+  autoGenerateChatTitle: true
 };
 
 exports.initializeUserPreferences = async () => {

@@ -5,6 +5,7 @@ const {
   storeMessageWithEmbedding,
   getChatHistory,
   searchChatHistory,
+  generateChatTitle, // Import generateChatTitle
 } = require("../services/chatService");
 const { ArtifactManager } = require("../utils/ArtifactManager");
 
@@ -80,6 +81,37 @@ exports.addMessage = async (req, res) => {
   } catch (error) {
     console.error("Error adding message:", error);
     res.status(500).json({ error: "Failed to add message." });
+  }
+};
+
+exports.updateSessionTitle = async (req, res) => {
+  const userId = req.user.id;
+  const { sessionId } = req.params;
+  const { textForTitle } = req.body;
+
+  if (!textForTitle) {
+    return res.status(400).json({ error: "textForTitle is required in the request body." });
+  }
+
+  try {
+    const session = await Session.findOne({ where: { id: sessionId, userId } });
+    if (!session) {
+      return res.status(404).json({ error: "Session not found or user does not have access." });
+    }
+
+    const newTitle = await generateChatTitle(textForTitle);
+    if (!newTitle) {
+      // Fallback if title generation service returns nothing (e.g. error handled within service)
+      return res.status(500).json({ error: "Failed to generate title." });
+    }
+    
+    session.title = newTitle;
+    await session.save();
+
+    res.status(200).json({ session });
+  } catch (error) {
+    console.error("Error updating session title:", error);
+    res.status(500).json({ error: "Failed to update session title." });
   }
 };
 

@@ -31,6 +31,7 @@ const LLMChatInterface = () => {
   const { theme } = useContext(ThemeContext);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [currentSessionId, setCurrentSessionId] = useState(null);
+  const [sessions, setSessions] = useState([]);
 
   const fetchUserPreferences = useCallback(async () => {
     if (userPreferencesFetchedRef.current) return;
@@ -46,6 +47,14 @@ const LLMChatInterface = () => {
   useEffect(() => {
     fetchUserPreferences();
   }, [fetchUserPreferences]);
+
+  const handleTitleUpdate = useCallback((sessionId, newTitle) => {
+    setSessions((prevSessions) =>
+      prevSessions.map((session) =>
+        session.id === sessionId ? { ...session, title: newTitle } : session
+      )
+    );
+  }, []);
 
   const {
     messages,
@@ -63,7 +72,7 @@ const LLMChatInterface = () => {
     stats,
     handleSubmit,
     clearError,
-  } = useChat(userPreferences, currentSessionId);
+  } = useChat(userPreferences, currentSessionId, handleTitleUpdate);
 
   const processMessageForArtifacts = useCallback((message) => {
     if (message && message.role === "assistant") {
@@ -99,12 +108,15 @@ const LLMChatInterface = () => {
       const newSessionId = response.data.session.id;
       setCurrentSessionId(newSessionId);
       setMessages([]);
-      // If submitAfterCreation is true, and there's input, call handleSubmit for the new session
       if (submitAfterCreation && inputValue.trim()) {
-        // We need a dummy event object for handleSubmit
-        const dummyEvent = { preventDefault: () => {} }; 
+        const dummyEvent = { preventDefault: () => {} };
         await handleSubmit(dummyEvent, newSessionId);
       }
+      setSessions((prevSessions) =>
+        [response.data.session, ...prevSessions].filter(
+          (v, i, a) => a.findIndex((t) => t.id === v.id) === i
+        )
+      );
     } catch (error) {
       console.error("Error creating new session:", error);
     }
@@ -113,9 +125,8 @@ const LLMChatInterface = () => {
   const onMessageSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      // If there is no current session, create one first, then submit.
       if (!currentSessionId) {
-        await handleCreateSession(true); // Pass a flag to indicate submission after creation
+        await handleCreateSession(true);
       } else {
         await handleSubmit(e, currentSessionId);
       }
@@ -206,15 +217,18 @@ const LLMChatInterface = () => {
       <div className="flex-grow flex overflow-hidden">
         <Sidebar
           isExpanded={isSidebarOpen}
+          setIsExpanded={setIsSidebarOpen}
           toggleSidebar={toggleSidebar}
           onSelectSession={handleSelectSession}
           onCreateSession={handleCreateSession}
           onResultSelect={handleResultSelect}
+          sessions={sessions}
+          setSessions={setSessions}
+          currentSessionId={currentSessionId}
           systemMessage={systemMessage}
           setSystemMessage={setSystemMessage}
           selectedModel={selectedModel}
           setSelectedModel={setSelectedModel}
-          // Pass enableSemanticSearch to Sidebar so it can conditionally show/hide semantic search features
           enableSemanticSearch={userPreferences?.enableSemanticSearch}
         />
         <div className="flex-grow flex flex-col">
@@ -232,7 +246,6 @@ const LLMChatInterface = () => {
               placeholderText={placeholderText}
               isLoading={isLoading}
               handleSubmit={onMessageSubmit}
-              // Pass clearError to ChatArea to allow it to clear errors on input change.
               clearError={clearError}
             />
           )}

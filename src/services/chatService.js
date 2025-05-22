@@ -1,5 +1,5 @@
 const { processAnthropicChat } = require('./anthropicService');
-const { processOpenAIChat, generateOpenAIEmbedding } = require('./openaiService');
+const { processOpenAIChat, generateOpenAIEmbedding, generateTitleWithOpenAI } = require('./openaiService');
 const { processOllamaChat, generateOllamaEmbedding } = require('./ollamaService');
 const { getUserPreferences } = require('../utils/userPreferencesManager');
 const chromaDBService = require('./chromaDBService');
@@ -184,5 +184,18 @@ exports.searchChatHistory = async (userId, query, topK = 10) => {
   } catch (error) {
     console.error('Error searching chat history:', error);
     throw error;
+  }
+};
+
+exports.generateChatTitle = async (text) => {
+  try {
+    // For now, we'll use OpenAI by default for title generation.
+    // This could be made configurable in userPreferences later.
+    const title = await generateTitleWithOpenAI(text);
+    return title;
+  } catch (error) {
+    console.error('Error generating chat title in chatService:', error);
+    // Fallback to a generic title or re-throw, depending on desired behavior
+    return "Chat Summary"; 
   }
 };

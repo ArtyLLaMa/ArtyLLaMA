@@ -22,7 +22,13 @@ const PreviewPanel = ({ artifacts, closePreview, expandArtifact }) => {
   const currentArtifact = artifacts[currentArtifactIndex];
 
   if (!currentArtifact) {
-    return <div>No artifacts to display</div>;
+    return (
+      <div className="w-1/3 flex-shrink-0 border-l border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 flex flex-col items-center justify-center p-4">
+        <div className="text-gray-500 dark:text-gray-400 text-center">
+          No artifacts to display
+        </div>
+      </div>
+    );
   }
 
   return (

@@ -111,3 +111,45 @@ exports.generateOpenAIEmbedding = async (text) => {
     }
   }
 };
+
+exports.generateTitleWithOpenAI = async (text) => {
+  try {
+    const response = await axios.post(
+      `${OPENAI_API_URL}/chat/completions`,
+      {
+        model: "gpt-3.5-turbo", // Or your preferred model for title generation
+        messages: [
+          {
+            role: "system",
+            content: "You are an assistant that generates concise and relevant chat titles. The title should be 5 words or less.",
+          },
+          {
+            role: "user",
+            content: `Generate a title for the following text: "${text}"`,
+          },
+        ],
+        max_tokens: 20, // Adjust as needed for title length
+        temperature: 0.5, // Adjust for creativity vs. determinism
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${OPENAI_API_KEY}`,
+        },
+      }
+    );
+
+    if (response.data && response.data.choices && response.data.choices.length > 0) {
+      let title = response.data.choices[0].message.content.trim();
+      // Remove quotes if the model adds them
+      title = title.replace(/^["'](.*)["']$/, '$1');
+      return title;
+    } else {
+      console.error("Unexpected title generation response format:", response.data);
+      throw new Error("Failed to generate title: Unexpected response format");
+    }
+  } catch (error) {
+    console.error("Error generating title with OpenAI:", error.response ? error.response.data : error.message);
+    throw error;
+  }
+};

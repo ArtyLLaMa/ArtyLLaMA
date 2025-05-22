@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import axiosInstance from "../utils/axiosInstance";
 
-export const useChat = (userPreferences, currentSessionId) => {
+export const useChat = (userPreferences, currentSessionId, onTitleUpdate) => {
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState("");
   const [placeholderText, setPlaceholderText] = useState("");
@@ -11,6 +11,34 @@ export const useChat = (userPreferences, currentSessionId) => {
   const [systemMessage, setSystemMessage] = useState("");
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
   const [streamingMessage, setStreamingMessage] = useState(null);
+  const [firstAiResponseContent, setFirstAiResponseContent] = useState(null);
+
+  // Effect to auto-generate title
+  useEffect(() => {
+    const autoGenerateTitle = async () => {
+      if (
+        firstAiResponseContent &&
+        currentSessionId &&
+        userPreferences?.autoGenerateChatTitle
+      ) {
+        try {
+          const response = await axiosInstance.put(
+            `/chat/sessions/${currentSessionId}/title`,
+            { textForTitle: firstAiResponseContent }
+          );
+          if (response.data && response.data.session && onTitleUpdate) {
+            onTitleUpdate(currentSessionId, response.data.session.title);
+          }
+          setFirstAiResponseContent(null);
+        } catch (error) {
+          console.error("Error auto-generating chat title:", error);
+          setFirstAiResponseContent(null);
+        }
+      }
+    };
+
+    autoGenerateTitle();
+  }, [firstAiResponseContent, currentSessionId, userPreferences, onTitleUpdate]);
 
   // Callback to clear any existing error messages.
   const clearError = useCallback(() => {
@@ -168,15 +196,20 @@ export const useChat = (userPreferences, currentSessionId) => {
         setStreamingMessage(aiMessage);
 
         let buffer = "";
+        let streamProcessingComplete = false;
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+
+          if (done) {
+            streamProcessingComplete = true;
+          }
 
           buffer += decoder.decode(value, { stream: true });
 
           let lines = buffer.split("\n");
-          buffer = lines.pop();
+
+          buffer = done ? "" : lines.pop();
 
           for (const line of lines) {
             if (line.trim() === "") continue;
@@ -185,8 +218,18 @@ export const useChat = (userPreferences, currentSessionId) => {
               const data = line.slice(6).trim();
 
               if (data === "[DONE]") {
+                const finalContent = aiMessage.content;
                 setStreamingMessage(null);
-                setMessages((prevMessages) => [...prevMessages, aiMessage]);
+                setMessages((prevMessages) => {
+                  const assistantMessagesCount = prevMessages.filter(
+                    (m) => m.role === "assistant"
+                  ).length;
+                  if (assistantMessagesCount === 0 && finalContent) {
+                    setFirstAiResponseContent(finalContent);
+                  }
+                  return [...prevMessages, { ...aiMessage, content: finalContent }];
+                });
+                streamProcessingComplete = true;
                 break;
               }
 
@@ -203,16 +246,15 @@ export const useChat = (userPreferences, currentSessionId) => {
                       timestamp: new Date(),
                     },
                   ]);
+                  streamProcessingComplete = true;
                   break;
                 }
                 if (parsedData.content) {
                   aiMessage.content += parsedData.content;
                   aiMessage.provider = parsedData.provider;
-
                   setStreamingMessage({ ...aiMessage });
 
                   totalTokens += parsedData.content.split(" ").length;
-
                   const currentTime = Date.now();
                   const elapsedTime = (currentTime - startTime) / 1000;
                   setStats({
@@ -221,15 +263,33 @@ export const useChat = (userPreferences, currentSessionId) => {
                   });
                 }
                 if (parsedData.fullContent) {
-                  aiMessage.content = parsedData.fullContent;
+                  const finalContent = parsedData.fullContent;
+                  aiMessage.content = finalContent;
                   setStreamingMessage(null);
-                  setMessages((prevMessages) => [...prevMessages, aiMessage]);
+                  setMessages((prevMessages) => {
+                    const assistantMessagesCount = prevMessages.filter(
+                      (m) => m.role === "assistant"
+                    ).length;
+                    if (assistantMessagesCount === 0 && finalContent) {
+                      setFirstAiResponseContent(finalContent);
+                    }
+                    return [...prevMessages, { ...aiMessage }];
+                  });
+                  streamProcessingComplete = true;
                   break;
                 }
               } catch (parseError) {
                 console.error("Error parsing JSON:", parseError);
+                setError(`Error parsing stream data: ${parseError.message}`);
+                setStreamingMessage(null);
+                streamProcessingComplete = true;
+                break;
               }
             }
+          }
+
+          if (streamProcessingComplete) {
+            break;
           }
         }
       } catch (error) {
@@ -244,7 +304,7 @@ export const useChat = (userPreferences, currentSessionId) => {
         setStreamingMessage(null);
       }
     },
-    [inputValue, messages, selectedModel, systemMessage]
+    [inputValue, messages, selectedModel, systemMessage, userPreferences, onTitleUpdate]
   );
 
   const chatState = useMemo(
@@ -264,6 +324,8 @@ export const useChat = (userPreferences, currentSessionId) => {
       stats,
       handleSubmit,
       clearError,
+      firstAiResponseContent,
+      setFirstAiResponseContent,
     }),
     [
       messages,
@@ -277,6 +339,7 @@ export const useChat = (userPreferences, currentSessionId) => {
       stats,
       handleSubmit,
       clearError,
+      firstAiResponseContent,
     ]
   );
 

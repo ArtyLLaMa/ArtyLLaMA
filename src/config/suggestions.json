@@ -1,6 +1,10 @@
 [
-  { "iconName": "ChartSpline", "text": "Create a flowchart that visualizes the steps involved in deploying a web application using Docker." },
-  { "iconName": "Gamepad2", "text": "Create a simple Pong game where players control paddles to bounce the ball back and forth." },
-  { "iconName": "ChartBarBig", "text": "Create a bar chart comparing the performance of different JavaScript frameworks (React, Angular, Vue) based on their bundle size and speed." },
-  { "iconName": "Atom", "text": "Build an interactive simulation of a bouncing ball affected by gravity." }
+  { "iconName": "ChartSpline", "text": "Generate an HTML page with a CSS animation of a sunset." },
+  { "iconName": "Gamepad2", "text": "Design an SVG logo for a fictional space exploration company." },
+  { "iconName": "ChartBarBig", "text": "Create a 3D model of a stylized tree using Three.js." },
+  { "iconName": "Atom", "text": "Write a p5.js sketch that creates an interactive particle system." },
+  { "iconName": "Brain", "text": "Generate the HTML and CSS for a visually appealing landing page for a new app." },
+  { "iconName": "Code", "text": "Develop an SVG infographic explaining the water cycle." },
+  { "iconName": "Lightbulb", "text": "Brainstorm ideas for a generative art piece based on natural patterns, and provide a starting code snippet in JavaScript." },
+  { "iconName": "BookOpen", "text": "Compose a visual poem using HTML, CSS, and JavaScript to animate the text." }
 ]
