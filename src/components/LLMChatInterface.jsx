@@ -62,6 +62,7 @@ const LLMChatInterface = () => {
     setSystemMessage: setChatSystemMessage,
     stats,
     handleSubmit,
+    clearError,
   } = useChat(userPreferences, currentSessionId);
 
   const processMessageForArtifacts = useCallback((message) => {
@@ -220,6 +221,8 @@ const LLMChatInterface = () => {
               placeholderText={placeholderText}
               isLoading={isLoading}
               handleSubmit={onMessageSubmit}
+              // Pass clearError to ChatArea to allow it to clear errors on input change.
+              clearError={clearError}
             />
           )}
         </div>

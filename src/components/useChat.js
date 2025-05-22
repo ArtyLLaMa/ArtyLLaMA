@@ -12,6 +12,11 @@ export const useChat = (userPreferences, currentSessionId) => {
   const [stats, setStats] = useState({ tokensPerSecond: 0, totalTokens: 0 });
   const [streamingMessage, setStreamingMessage] = useState(null);
 
+  // Callback to clear any existing error messages.
+  const clearError = useCallback(() => {
+    setError(null);
+  }, []);
+
   useEffect(() => {
     if (userPreferences) {
       if (
@@ -74,7 +79,11 @@ export const useChat = (userPreferences, currentSessionId) => {
   const handleSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      if (!inputValue.trim()) return;
+      // Input validation: Prevent submitting empty messages.
+      if (!inputValue.trim()) {
+        setError("Message cannot be empty.");
+        return;
+      }
       if (!selectedModel) {
         setError("Please select a model before sending a message.");
         return;
@@ -247,6 +256,7 @@ export const useChat = (userPreferences, currentSessionId) => {
       setSystemMessage,
       stats,
       handleSubmit,
+      clearError,
     }),
     [
       messages,
@@ -259,6 +269,7 @@ export const useChat = (userPreferences, currentSessionId) => {
       systemMessage,
       stats,
       handleSubmit,
+      clearError,
     ]
   );
 

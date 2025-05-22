@@ -1,6 +1,16 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
+import suggestionsData from '../config/suggestions.json';
+
+// iconMap maps icon names from suggestions.json to their corresponding Lucide React components.
+const iconMap = {
+  ChartSpline: <ChartSpline size={20} />,
+  Gamepad2: <Gamepad2 size={20} />,
+  ChartBarBig: <ChartBarBig size={20} />,
+  Atom: <Atom size={20} />,
+};
 
 const ChatArea = ({
   messages,
@@ -11,20 +21,25 @@ const ChatArea = ({
   placeholderText,
   isLoading,
   handleSubmit,
+  clearError,
 }) => {
   const messagesEndRef = useRef(null);
   const { theme } = useContext(ThemeContext);
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingMessage]);
 
-  const suggestions = [
-    { icon: <ChartSpline size={20} />, text: 'Create a flowchart that visualizes the steps involved in deploying a web application using Docker.' },
-    { icon: <Gamepad2 size={20} />, text: 'Create a simple Pong game where players control paddles to bounce the ball back and forth.' },
-    { icon: <ChartBarBig size={20} />, text: 'Create a bar chart comparing the performance of different JavaScript frameworks (React, Angular, Vue) based on their bundle size and speed.' },
-    { icon: <Atom size={20} />, text: 'Build an interactive simulation of a bouncing ball affected by gravity.' },
-  ];
+  // useEffect hook to load and process suggestions from suggestions.json on component mount.
+  useEffect(() => {
+    // Maps suggestion data from JSON to include actual icon components.
+    const loadedSuggestions = suggestionsData.map(suggestion => ({
+      ...suggestion,
+      icon: iconMap[suggestion.iconName] || <Atom size={20} /> // Uses iconName to look up the component in iconMap, with a fallback.
+    }));
+    setSuggestions(loadedSuggestions);
+  }, []); // Empty dependency array ensures this effect runs only once on mount.
 
   return (
     <div className="flex-grow flex flex-col overflow-hidden">
@@ -66,7 +81,15 @@ const ChatArea = ({
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
+            // When the input value changes, update the state.
+            // If an error message is currently displayed and clearError function is available,
+            // call clearError to remove the error message, improving user experience.
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              if (error && clearError) {
+                clearError();
+              }
+            }}
             placeholder={placeholderText}
             className="flex-grow p-3 bg-transparent outline-none text-gray-800 dark:text-white"
             disabled={isLoading}
