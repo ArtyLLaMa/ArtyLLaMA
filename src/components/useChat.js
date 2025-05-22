@@ -77,7 +77,7 @@ export const useChat = (userPreferences, currentSessionId) => {
   }, [currentSessionId]);
 
   const handleSubmit = useCallback(
-    async (e) => {
+    async (e, currentSessionId, createSessionAndSubmit) => {
       e.preventDefault();
       // Input validation: Prevent submitting empty messages.
       if (!inputValue.trim()) {
@@ -88,6 +88,13 @@ export const useChat = (userPreferences, currentSessionId) => {
         setError("Please select a model before sending a message.");
         return;
       }
+      // If there's no current session, and a function to create one is provided, call it.
+      if (!currentSessionId && createSessionAndSubmit) {
+        await createSessionAndSubmit(e);
+        return;
+      }
+      // If still no currentSessionId (e.g., createSessionAndSubmit was not provided or failed),
+      // set an error and return.
       if (!currentSessionId) {
         setError("Please select or create a chat session.");
         return;
@@ -237,7 +244,7 @@ export const useChat = (userPreferences, currentSessionId) => {
         setStreamingMessage(null);
       }
     },
-    [inputValue, messages, selectedModel, systemMessage, currentSessionId]
+    [inputValue, messages, selectedModel, systemMessage]
   );
 
   const chatState = useMemo(

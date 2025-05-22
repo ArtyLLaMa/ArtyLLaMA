@@ -93,12 +93,34 @@ const LLMChatInterface = () => {
     }
   }, [streamingMessage, processMessageForArtifacts]);
 
+  const handleCreateSession = useCallback(async (submitAfterCreation = false) => {
+    try {
+      const response = await axiosInstance.post("/chat/sessions");
+      const newSessionId = response.data.session.id;
+      setCurrentSessionId(newSessionId);
+      setMessages([]);
+      // If submitAfterCreation is true, and there's input, call handleSubmit for the new session
+      if (submitAfterCreation && inputValue.trim()) {
+        // We need a dummy event object for handleSubmit
+        const dummyEvent = { preventDefault: () => {} }; 
+        await handleSubmit(dummyEvent, newSessionId);
+      }
+    } catch (error) {
+      console.error("Error creating new session:", error);
+    }
+  }, [setMessages, inputValue, handleSubmit]);
+
   const onMessageSubmit = useCallback(
     async (e) => {
       e.preventDefault();
-      await handleSubmit(e, currentSessionId);
+      // If there is no current session, create one first, then submit.
+      if (!currentSessionId) {
+        await handleCreateSession(true); // Pass a flag to indicate submission after creation
+      } else {
+        await handleSubmit(e, currentSessionId);
+      }
     },
-    [handleSubmit, currentSessionId]
+    [handleSubmit, currentSessionId, handleCreateSession]
   );
 
   const toggleSettings = useCallback(
@@ -159,17 +181,6 @@ const LLMChatInterface = () => {
     setMessages([]);
   }, [setMessages]);
 
-  const handleCreateSession = useCallback(async () => {
-    try {
-      const response = await axiosInstance.post("/chat/sessions");
-      const newSessionId = response.data.session.id;
-      setCurrentSessionId(newSessionId);
-      setMessages([]);
-    } catch (error) {
-      console.error("Error creating new session:", error);
-    }
-  }, [setMessages]);
-
   const handleResultSelect = useCallback(
     (sessionId) => {
       handleSelectSession(sessionId);
@@ -189,7 +200,7 @@ const LLMChatInterface = () => {
 
   return (
     <div
-      className={`flex flex-col h-screen bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300`}
+      className={`flex flex-col h-screen`}
     >
       <Header {...headerProps} />
       <div className="flex-grow flex overflow-hidden">

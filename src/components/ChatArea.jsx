@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useContext } from 'react';
-import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
 import suggestionsData from '../config/suggestions.json';
@@ -24,32 +23,30 @@ const ChatArea = ({
   clearError,
 }) => {
   const messagesEndRef = useRef(null);
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext); // Ensure theme is used, or default to dark
   const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingMessage]);
 
-  // useEffect hook to load and process suggestions from suggestions.json on component mount.
   useEffect(() => {
-    // Maps suggestion data from JSON to include actual icon components.
     const loadedSuggestions = suggestionsData.map(suggestion => ({
       ...suggestion,
-      icon: iconMap[suggestion.iconName] || <Atom size={20} /> // Uses iconName to look up the component in iconMap, with a fallback.
+      icon: iconMap[suggestion.iconName] || <Atom size={20} />
     }));
     setSuggestions(loadedSuggestions);
-  }, []); // Empty dependency array ensures this effect runs only once on mount.
+  }, []);
 
   return (
-    <div className="flex-grow flex flex-col overflow-hidden">
+    <div className="flex-grow flex flex-col overflow-hidden bg-gray-900 text-gray-300">
       <div className="flex-grow overflow-y-auto p-4 space-y-4">
         {error && (
-          <div className="bg-red-500 text-white p-2 rounded mb-4">
+          <div className="bg-red-700 text-white p-3 rounded-md mb-4 text-sm">
             {error}
           </div>
         )}
-        {messages.length === 0 && !streamingMessage && (
+        {messages.length === 0 && !streamingMessage && !error && (
           <div className="flex flex-col justify-center items-center h-full">
             <div className="grid grid-cols-2 gap-4 max-w-md">
               {suggestions.map((suggestion, index) => (
@@ -64,43 +61,39 @@ const ChatArea = ({
           </div>
         )}
         {messages.map((message, index) => (
-          <MessageBubble key={index} message={message} theme={theme} />
+          <MessageBubble key={index} message={message} />
         ))}
         {streamingMessage && (
           <MessageBubble
             message={streamingMessage}
             isStreaming={true}
-            theme={theme}
           />
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4">
-        <div className="flex items-center bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden">
+      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+        <div className="flex items-center bg-gray-800 rounded-md overflow-hidden">
           <input
             type="text"
             value={inputValue}
-            // When the input value changes, update the state.
-            // If an error message is currently displayed and clearError function is available,
-            // call clearError to remove the error message, improving user experience.
             onChange={(e) => {
               setInputValue(e.target.value);
               if (error && clearError) {
                 clearError();
               }
             }}
-            placeholder={placeholderText}
-            className="flex-grow p-3 bg-transparent outline-none text-gray-800 dark:text-white"
+            placeholder={placeholderText || "Send a message..."}
+            className="flex-grow p-3 bg-transparent outline-none text-gray-300 placeholder-gray-500"
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
-            disabled={isLoading}
+            className="p-3 text-gray-400 hover:text-gray-200 transition-colors disabled:opacity-50"
+            disabled={isLoading || !inputValue.trim()}
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-800 dark:border-white border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-transparent"></div>
             ) : (
               <Send size={20} />
             )}
@@ -111,19 +104,19 @@ const ChatArea = ({
   );
 };
 
-const MessageBubble = ({ message, isStreaming = false, theme }) => (
+const MessageBubble = ({ message, isStreaming = false }) => (
   <div
     className={`flex ${
       message.role === 'user' ? 'justify-end' : 'justify-start'
     }`}
   >
     <div
-      className={`max-w-[75%] p-3 rounded-lg ${
+      className={`max-w-[75%] p-3 rounded-lg text-sm ${
         message.role === 'user'
-          ? 'bg-blue-500 text-white'
+          ? 'bg-blue-600 text-white'
           : isStreaming
-          ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 animate-pulse'
-          : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+          ? 'bg-gray-700 text-gray-300 animate-pulse'
+          : 'bg-gray-700 text-gray-300'
       }`}
     >
       {message.content}
@@ -134,7 +127,7 @@ const MessageBubble = ({ message, isStreaming = false, theme }) => (
 const SuggestionButton = ({ icon, text, setInputValue }) => (
   <button
     onClick={() => setInputValue(text)}
-    className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg p-3 transition-colors w-full h-32"
+    className="flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg p-4 transition-colors w-full h-36"
   >
     <div className="mb-2">{icon}</div>
     <span className="text-xs text-center">{text}</span>
