@@ -112,18 +112,18 @@ const Header = React.memo(
             <span className="text-xs px-2 py-1 bg-gray-700 rounded">{stats.tokensPerSecond} t/s</span>
           )}
           {stats?.totalTokens > 0 && (
-            <span className="text-xs px-2 py-1 bg-gray-700 rounded">{stats.totalTokens} tokens</span>
+            <span className="text-xs px-2 py-1 bg-gray-300 text-gray-700 dark:bg-gray-700 dark:text-gray-200 rounded">{stats.totalTokens} tokens</span>
           )}
           <button
             onClick={toggleTheme}
-            className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            className="p-2 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
             title="Toggle Light/Dark Mode"
           >
             {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           <button
             onClick={toggleSettings}
-            className="p-2 bg-gray-800 rounded-full hover:bg-gray-700 transition-colors"
+            className="p-2 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors"
             title="Settings"
           >
             <Settings size={18} />
