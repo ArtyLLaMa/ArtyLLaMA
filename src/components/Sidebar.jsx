@@ -13,11 +13,11 @@ const Sidebar = ({
 
   return (
     <div
-      className={`h-full flex flex-col transition-all duration-300 ${
+      className={`h-full flex flex-col transition-all duration-300 flex-shrink-0 ${
         isExpanded ? 'w-64' : 'w-12'
       } bg-white text-black dark:bg-gray-900 dark:text-white`}
     >
-      <div className="p-2 flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+      <div className="p-2 flex justify-between items-center border-b border-gray-200 dark:border-gray-700 flex-shrink-0">
         <div className={`text-xl font-bold ${isExpanded ? '' : 'hidden'}`}>History</div>
         <button
           onClick={() => setIsExpanded(!isExpanded)}
@@ -27,7 +27,7 @@ const Sidebar = ({
         </button>
       </div>
       {isExpanded && (
-        <div className="flex-grow overflow-y-auto p-4">
+        <div className="flex-grow overflow-y-auto p-4 flex flex-col">
           {/* Pass enableSemanticSearch down to SemanticSearchBox */}
           <SemanticSearchBox onResultSelect={onResultSelect} enableSemanticSearch={enableSemanticSearch} />
 

@@ -7,6 +7,35 @@ const { v4: uuidv4 } = require('uuid');
 const Session = require('../models/sessionModel');
 const Message = require('../models/messageModel');
 
+/**
+ * Helper function to generate embeddings and determine embedding dimensions.
+ * This function abstracts the logic for choosing the embedding provider (OpenAI or Ollama)
+ * and retrieving the correct embedding vector and its dimension.
+ *
+ * @param {string} text - The input text to generate embeddings for.
+ * @param {string} embeddingModelName - The name of the embedding model to use ('OpenAI' or 'Ollama').
+ * @returns {Promise<{embedding: Array<number>|null, embeddingDimension: number|null}>} 
+ *          An object containing the generated embedding and its dimension.
+ * @throws {Error} If the embeddingModelName is not supported.
+ */
+async function getEmbeddingDetails(text, embeddingModelName) {
+  let embedding = null;
+  let embeddingDimension = null;
+
+  if (embeddingModelName === 'OpenAI') {
+    embedding = await generateOpenAIEmbedding(text);
+    embeddingDimension = 1536; // OpenAI embedding dimension
+  } else if (embeddingModelName === 'Ollama') {
+    embedding = await generateOllamaEmbedding(text);
+    // Note: Ollama embedding dimension can vary based on the model.
+    // This might need to be dynamically determined or configured if more models are supported.
+    embeddingDimension = 1024; // Assuming a common Ollama embedding dimension
+  } else {
+    throw new Error(`Unsupported embedding model: ${embeddingModelName}`);
+  }
+  return { embedding, embeddingDimension };
+}
+
 exports.processChat = async (model, messages, onChunk) => {
   try {
     const userPreferences = await getUserPreferences();
@@ -51,22 +80,16 @@ exports.storeMessageWithEmbedding = async (
       return null;
     }
 
-    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
-    let embedding = null;
-    let embeddingDimension = null;
+    const embeddingModelName = userPreferences.embeddingModel || 'OpenAI';
 
-    if (embeddingModel === 'OpenAI') {
-      embedding = await generateOpenAIEmbedding(messageContent);
-      embeddingDimension = 1536; // OpenAI embedding dimension
-    } else if (embeddingModel === 'Ollama') {
-      embedding = await generateOllamaEmbedding(messageContent);
-      embeddingDimension = 1024; // Ollama embedding dimension
-    } else {
-      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
-    }
+    // Retrieve embedding and its dimension using the helper function.
+    const { embedding, embeddingDimension } = await getEmbeddingDetails(
+      messageContent,
+      embeddingModelName
+    );
 
     // Use a collection per user and embedding model for isolation
-    const collectionName = `chat_history_${userId}_${embeddingModel.toLowerCase()}`;
+    const collectionName = `chat_history_${userId}_${embeddingModelName.toLowerCase()}`;
 
     const documentId = uuidv4();
     const metadata = {
@@ -122,23 +145,14 @@ exports.searchChatHistory = async (userId, query, topK = 10) => {
       return [];
     }
 
-    const embeddingModel = userPreferences.embeddingModel || 'OpenAI';
+    const embeddingModelName = userPreferences.embeddingModel || 'OpenAI';
 
-    let queryEmbedding = null;
-    let embeddingDimension = null;
-
-    if (embeddingModel === 'OpenAI') {
-      queryEmbedding = await generateOpenAIEmbedding(query);
-      embeddingDimension = 1536;
-    } else if (embeddingModel === 'Ollama') {
-      queryEmbedding = await generateOllamaEmbedding(query);
-      embeddingDimension = 1024;
-    } else {
-      throw new Error(`Unsupported embedding model: ${embeddingModel}`);
-    }
+    // Retrieve query embedding and its dimension using the helper function.
+    const { embedding: queryEmbedding, embeddingDimension } =
+      await getEmbeddingDetails(query, embeddingModelName);
 
     // Use the collection corresponding to the embedding model
-    const collectionName = `chat_history_${userId}_${embeddingModel.toLowerCase()}`;
+    const collectionName = `chat_history_${userId}_${embeddingModelName.toLowerCase()}`;
 
     const filters = {
       userId,

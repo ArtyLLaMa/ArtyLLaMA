@@ -1,0 +1,6 @@
+[
+  { "iconName": "ChartSpline", "text": "Create a flowchart that visualizes the steps involved in deploying a web application using Docker." },
+  { "iconName": "Gamepad2", "text": "Create a simple Pong game where players control paddles to bounce the ball back and forth." },
+  { "iconName": "ChartBarBig", "text": "Create a bar chart comparing the performance of different JavaScript frameworks (React, Angular, Vue) based on their bundle size and speed." },
+  { "iconName": "Atom", "text": "Build an interactive simulation of a bouncing ball affected by gravity." }
+]

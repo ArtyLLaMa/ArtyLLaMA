@@ -1,6 +1,15 @@
-import React, { useRef, useEffect, useContext } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { Send, Atom, ChartBarBig, Gamepad2, ChartSpline } from 'lucide-react';
 import { ThemeContext } from '../context/ThemeContext';
+import suggestionsData from '../config/suggestions.json';
+
+// iconMap maps icon names from suggestions.json to their corresponding Lucide React components.
+const iconMap = {
+  ChartSpline: <ChartSpline size={20} />,
+  Gamepad2: <Gamepad2 size={20} />,
+  ChartBarBig: <ChartBarBig size={20} />,
+  Atom: <Atom size={20} />,
+};
 
 const ChatArea = ({
   messages,
@@ -11,30 +20,33 @@ const ChatArea = ({
   placeholderText,
   isLoading,
   handleSubmit,
+  clearError,
 }) => {
   const messagesEndRef = useRef(null);
-  const { theme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext); // Ensure theme is used, or default to dark
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, streamingMessage]);
 
-  const suggestions = [
-    { icon: <ChartSpline size={20} />, text: 'Create a flowchart that visualizes the steps involved in deploying a web application using Docker.' },
-    { icon: <Gamepad2 size={20} />, text: 'Create a simple Pong game where players control paddles to bounce the ball back and forth.' },
-    { icon: <ChartBarBig size={20} />, text: 'Create a bar chart comparing the performance of different JavaScript frameworks (React, Angular, Vue) based on their bundle size and speed.' },
-    { icon: <Atom size={20} />, text: 'Build an interactive simulation of a bouncing ball affected by gravity.' },
-  ];
+  useEffect(() => {
+    const loadedSuggestions = suggestionsData.map(suggestion => ({
+      ...suggestion,
+      icon: iconMap[suggestion.iconName] || <Atom size={20} />
+    }));
+    setSuggestions(loadedSuggestions);
+  }, []);
 
   return (
-    <div className="flex-grow flex flex-col overflow-hidden">
+    <div className="flex-grow flex flex-col overflow-hidden bg-gray-900 text-gray-300">
       <div className="flex-grow overflow-y-auto p-4 space-y-4">
         {error && (
-          <div className="bg-red-500 text-white p-2 rounded mb-4">
+          <div className="bg-red-700 text-white p-3 rounded-md mb-4 text-sm">
             {error}
           </div>
         )}
-        {messages.length === 0 && !streamingMessage && (
+        {messages.length === 0 && !streamingMessage && !error && (
           <div className="flex flex-col justify-center items-center h-full">
             <div className="grid grid-cols-2 gap-4 max-w-md">
               {suggestions.map((suggestion, index) => (
@@ -49,35 +61,39 @@ const ChatArea = ({
           </div>
         )}
         {messages.map((message, index) => (
-          <MessageBubble key={index} message={message} theme={theme} />
+          <MessageBubble key={index} message={message} />
         ))}
         {streamingMessage && (
           <MessageBubble
             message={streamingMessage}
             isStreaming={true}
-            theme={theme}
           />
         )}
         <div ref={messagesEndRef} />
       </div>
 
-      <form onSubmit={handleSubmit} className="p-4">
-        <div className="flex items-center bg-gray-200 dark:bg-gray-700 rounded-md overflow-hidden">
+      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-700">
+        <div className="flex items-center bg-gray-800 rounded-md overflow-hidden">
           <input
             type="text"
             value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={placeholderText}
-            className="flex-grow p-3 bg-transparent outline-none text-gray-800 dark:text-white"
+            onChange={(e) => {
+              setInputValue(e.target.value);
+              if (error && clearError) {
+                clearError();
+              }
+            }}
+            placeholder={placeholderText || "Send a message..."}
+            className="flex-grow p-3 bg-transparent outline-none text-gray-300 placeholder-gray-500"
             disabled={isLoading}
           />
           <button
             type="submit"
-            className="p-3 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-white transition-colors"
-            disabled={isLoading}
+            className="p-3 text-gray-400 hover:text-gray-200 transition-colors disabled:opacity-50"
+            disabled={isLoading || !inputValue.trim()}
           >
             {isLoading ? (
-              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-800 dark:border-white border-t-transparent"></div>
+              <div className="animate-spin rounded-full h-5 w-5 border-2 border-gray-300 border-t-transparent"></div>
             ) : (
               <Send size={20} />
             )}
@@ -88,19 +104,19 @@ const ChatArea = ({
   );
 };
 
-const MessageBubble = ({ message, isStreaming = false, theme }) => (
+const MessageBubble = ({ message, isStreaming = false }) => (
   <div
     className={`flex ${
       message.role === 'user' ? 'justify-end' : 'justify-start'
     }`}
   >
     <div
-      className={`max-w-[75%] p-3 rounded-lg ${
+      className={`max-w-[75%] p-3 rounded-lg text-sm ${
         message.role === 'user'
-          ? 'bg-blue-500 text-white'
+          ? 'bg-blue-600 text-white'
           : isStreaming
-          ? 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300 animate-pulse'
-          : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-300'
+          ? 'bg-gray-700 text-gray-300 animate-pulse'
+          : 'bg-gray-700 text-gray-300'
       }`}
     >
       {message.content}
@@ -111,7 +127,7 @@ const MessageBubble = ({ message, isStreaming = false, theme }) => (
 const SuggestionButton = ({ icon, text, setInputValue }) => (
   <button
     onClick={() => setInputValue(text)}
-    className="flex flex-col items-center justify-center bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-800 dark:text-gray-300 rounded-lg p-3 transition-colors w-full h-32"
+    className="flex flex-col items-center justify-center bg-gray-800 hover:bg-gray-700 text-gray-400 hover:text-gray-200 rounded-lg p-4 transition-colors w-full h-36"
   >
     <div className="mb-2">{icon}</div>
     <span className="text-xs text-center">{text}</span>
