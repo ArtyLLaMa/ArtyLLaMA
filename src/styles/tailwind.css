@@ -109,7 +109,7 @@
   }
 
   .tooltip-text {
-    @apply hidden absolute z-10 p-2 bg-gray-700 text-white text-xs rounded;
+    @apply hidden absolute z-10 p-2 bg-white dark:bg-gray-700 text-gray-800 dark:text-white text-xs rounded shadow-md;
     bottom: 100%;
     left: 50%;
     transform: translateX(-50%);
