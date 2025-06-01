@@ -41,7 +41,7 @@
     "three": "^0.177.0",
     "uuid": "^11.0.5",
     "vite": "^6.3.4",
-    "web-vitals": "5.0.1",
+    "web-vitals": "5.0.2",
     "winston": "^3.17.0"
   },
   "overrides": {
