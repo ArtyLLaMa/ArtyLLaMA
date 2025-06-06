@@ -34,7 +34,7 @@
     "react-markdown": "^10.0.1",
     "react-select": "^5.10.0",
     "sequelize": "^6.37.7",
-    "shiki": "^3.4.2",
+    "shiki": "^3.6.0",
     "sqlite3": "^5.1.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
