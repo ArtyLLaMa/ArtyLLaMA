@@ -45,7 +45,8 @@
     "winston": "^3.17.0"
   },
   "overrides": {
-    "esbuild": "^0.25.0"
+    "esbuild": "^0.25.0",
+    "brace-expansion": "^2.0.2"
   },
   "scripts": {
     "dev": "concurrently \"vite\" \"nodemon server.js --watch server.js --watch src/ --ext js,jsx,json --ignore node_modules --ignore dist --ignore public --ignore *.sqlite* --ignore logs/* --ignore uploads/* --ignore tmp/* --ignore coverage/*\"",
