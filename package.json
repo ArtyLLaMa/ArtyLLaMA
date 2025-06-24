@@ -24,7 +24,7 @@
     "express-rate-limit": "^7.5.0",
     "jsonwebtoken": "^9.0.2",
     "lodash": "^4.17.21",
-    "lucide-react": "^0.511.0",
+    "lucide-react": "^0.523.0",
     "mermaid": "^11.6.0",
     "mime": "^4.0.7",
     "openai": "^5.0.1",
